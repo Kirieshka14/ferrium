@@ -101,3 +101,16 @@ fn test_uwu_operator_vec3() {
         other => panic!("Unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_uwu_precedence() {
+    let mut comp = ScriptComponent::from_source(
+        "uwu_prec.fy",
+        "return 1 + 3 uwu 5 + 7 == 8.0;",
+    ).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    match comp.step(&mut host).unwrap() {
+        VmResult::Done(v) => assert_eq!(v.to_string(), "true"),
+        other => panic!("Unexpected {:?}", other),
+    }
+}
