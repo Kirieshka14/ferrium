@@ -20,10 +20,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libgtk-3-dev
       - name: Check workspace
-        run: cargo check --workspace
+        run: cargo check --workspace --all-targets
       - name: Run unit and integration tests
         run: cargo test --workspace
-      - name: Run headless editor & engine verification
+      - name: Verify headless editor and engine (Auto + Eager + VM modes)
         run: |
           cargo run -p ferrium_editor -- --headless-check
-          cargo run -p ferrium_engine -- --headless-ticks 120
+          cargo run -p ferrium_engine -- --headless-ticks 120 --jit-mode auto --jit-stats
+          cargo run -p ferrium_engine -- --headless-ticks 60 --jit-mode eager --jit-stats
+          cargo run -p ferrium_engine -- --headless-ticks 60 --no-jit --jit-stats
