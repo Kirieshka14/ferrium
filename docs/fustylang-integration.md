@@ -23,3 +23,12 @@ This guarantees that every language feature, bytecode optimization, and JIT impr
 | Nested block comments | `/* outer /* inner */ outer */` | Supported by both compiler and Ferrium Editor syntax highlighter |
 | Coroutines | `wait 0.25;` / `yield;` | Suspends VM cleanly across frames without blocking the ECS tick |
 | Immutability by default | `let x = 1;` vs `let mut x = 1;` | Enforced at bytecode compilation time |
+
+## Safe `baka!(...)` Trapping & Recovery
+
+FustyLang 0.2.1 introduces `baka!(msg)` for explicit runtime invariant assertions.
+
+In Ferrium, `baka!` traps **never panic the Rust host process**:
+- `FerriumScript` inspects runtime errors via `is_baka_message(&str)` and classifies them as `ScriptError::Baka`.
+- `ScriptComponent` records the message in `last_baka`, increments `baka_count`, and marks the script status cleanly.
+- Calling `ScriptComponent::recover_from_baka()` resets the VM instruction pointer and stack while preserving `jit_policy` and hot-reload metadata.
