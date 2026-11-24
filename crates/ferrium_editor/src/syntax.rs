@@ -148,3 +148,41 @@ fn is_ident_start(b: u8) -> bool {
 fn is_ident_continue(b: u8) -> bool {
     b.is_ascii_alphanumeric() || b == b'_'
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_highlight_fusty_021_tokens_and_colors() {
+        let src = r#"nya step() { let x = 1 uwu 5; purr("hi"); baka!("err"); }"#;
+        let job = highlight_fusty(src, 13.0);
+        assert!(job.sections.iter().any(|s| &job.text[s.byte_range.clone()] == "nya" && s.format.color == COL_KEYWORD));
+        assert!(job.sections.iter().any(|s| &job.text[s.byte_range.clone()] == "uwu" && s.format.color == COL_UWU));
+        assert!(job.sections.iter().any(|s| &job.text[s.byte_range.clone()] == "purr" && s.format.color == COL_PURR));
+        assert!(job.sections.iter().any(|s| &job.text[s.byte_range.clone()] == "baka!" && s.format.color == COL_BAKA));
+    }
+
+    #[test]
+    fn test_highlight_nested_block_comments_and_strings() {
+        let src = r#"/* outer /* inner */ still comment */ let s = "a "quote"";"#;
+        let job = highlight_fusty(src, 13.0);
+        assert!(job.sections.iter().any(|s| {
+            &job.text[s.byte_range.clone()] == "/* outer /* inner */ still comment */"
+                && s.format.color == COL_COMMENT
+        }));
+        assert!(job.sections.iter().any(|s| {
+            &job.text[s.byte_range.clone()] == r#""a "quote"""#
+                && s.format.color == COL_STRING
+        }));
+    }
+
+    #[test]
+    fn test_highlight_preserves_utf8_text_losslessly() {
+        let src = "// Привет FustyLang 0.2.1 🦀
+meow { raw_teleport(vec2(1.0, 2.0)); }";
+        let job = highlight_fusty(src, 12.0);
+        assert_eq!(job.text, src);
+        assert!(job.sections.iter().any(|s| &job.text[s.byte_range.clone()] == "meow" && s.format.color == COL_CONTROL));
+    }
+}
