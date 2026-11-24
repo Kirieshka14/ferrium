@@ -375,3 +375,14 @@ fn test_repo_smooth_follow_script_runs() {
     assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetPos(_, _))));
 }
+
+#[test]
+fn test_recursive_nya_factorial() {
+    let src = "nya fact(n: i64) -> i64 { if n <= 1 { return 1; } return n * fact(n - 1); }\nreturn fact(10);";
+    let mut comp = ScriptComponent::from_source("fact.fy", src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    match comp.step(&mut host).unwrap() {
+        VmResult::Done(v) => assert_eq!(v.to_string(), "3628800"),
+        other => panic!("Unexpected {:?}", other),
+    }
+}
