@@ -366,3 +366,12 @@ fn test_repo_color_pulse_script_runs() {
     assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetColor(_, _))));
 }
+
+#[test]
+fn test_repo_smooth_follow_script_runs() {
+    let src = std::fs::read_to_string("../../scripts/SmoothFollow.fy").unwrap();
+    let mut comp = ScriptComponent::from_source("SmoothFollow.fy", &src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetPos(_, _))));
+}
