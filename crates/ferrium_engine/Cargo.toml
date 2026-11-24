@@ -1,0 +1,12 @@
+[package]
+name = "ferrium_engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ferrium_math = { path = "../ferrium_math" }
+ferrium_ecs = { path = "../ferrium_ecs" }
+ferrium_render = { path = "../ferrium_render" }
+ferrium_script = { path = "../ferrium_script" }
+winit = "0.30"
+softbuffer = "0.4"
