@@ -220,3 +220,14 @@ fn test_angle_and_interpolation_intrinsics() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_vector_distance_and_dot_intrinsics() {
+    let (res, _) = run_expr(
+        "return distance2(vec2(0.0, 0.0), vec2(3.0, 4.0)) + distance3(vec3(0.0, 0.0, 0.0), vec3(0.0, 3.0, 4.0)) + dot2(vec2(2.0, 3.0), vec2(4.0, 5.0)) + dot3(vec3(1.0, 2.0, 3.0), vec3(4.0, 5.0, 6.0));",
+    );
+    match res {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 65.0).abs() < 1e-4),
+        other => panic!("unexpected {:?}", other),
+    }
+}
