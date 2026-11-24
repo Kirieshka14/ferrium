@@ -99,3 +99,29 @@ return sum_to(10);",
     assert!(summary.jit_eligible);
     assert!(check_jit_eligibility(&artifact.chunk, 0).is_ok());
 }
+
+#[test]
+fn test_jit_eager_matches_vm_interpreter() {
+    let src = r#"
+        nya tri(n: i64) -> i64 {
+            let mut s = 0;
+            let mut i = 1;
+            while i <= n {
+                s = s + i;
+                i = i + 1;
+            }
+            return s;
+        }
+        return tri(100);
+    "#;
+    let mut comp_vm = ScriptComponent::from_source_with_policy("vm.fy", src, JitPolicy::Disabled).unwrap();
+    let mut comp_jit = ScriptComponent::from_source_with_policy("jit.fy", src, JitPolicy::Eager).unwrap();
+
+    let mut host_vm = FerriumHost::new(ScriptSnapshot::default());
+    let mut host_jit = FerriumHost::new(ScriptSnapshot::default());
+
+    let r_vm = comp_vm.step(&mut host_vm).unwrap();
+    let r_jit = comp_jit.step(&mut host_jit).unwrap();
+    assert_eq!(format!("{:?}", r_vm), format!("{:?}", r_jit));
+    assert!(matches!(r_jit, VmResult::Done(v) if v.to_string() == "5050"));
+}
