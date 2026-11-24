@@ -95,3 +95,16 @@ fn test_mat4_orthographic_projection() {
     let right = ortho.project_point(Vec3::new(10.0, 5.0, 0.0)).unwrap();
     assert!((right.x - 1.0).abs() < 1e-5 && (right.y - 1.0).abs() < 1e-5);
 }
+
+#[test]
+fn test_transform_helpers() {
+    let mut tr = Transform::from_xy(10.0, 20.0);
+    assert_eq!(tr.pos2(), Vec2::new(10.0, 20.0));
+    assert_eq!(tr.z_order(), 0.0);
+    tr.set_pos2(Vec2::new(-5.0, 15.0));
+    assert_eq!(tr.position, Vec3::new(-5.0, 15.0, 0.0));
+
+    let tr3 = Transform::from_xyz(1.0, 2.0, 3.0);
+    assert_eq!(tr3.z_order(), 3.0);
+    assert_eq!(tr3.scale, Vec3::ONE);
+}
