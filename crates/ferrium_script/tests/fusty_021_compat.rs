@@ -262,3 +262,10 @@ fn test_repo_patrol_agent_script_compiles() {
     let art = compile_fusty_detailed(&src).unwrap();
     assert_eq!(art.functions.len(), 1);
 }
+
+#[test]
+fn test_repo_boss_arena_example_compiles() {
+    let src = std::fs::read_to_string("../../examples/boss_arena.fy").unwrap();
+    let art = compile_fusty_detailed(&src).unwrap();
+    assert_eq!(art.functions.len(), 1);
+}
