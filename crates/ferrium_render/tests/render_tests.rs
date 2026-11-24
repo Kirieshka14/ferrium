@@ -117,3 +117,13 @@ fn test_software_canvas_resize() {
     canvas.resize(200, 150);
     assert_eq!(canvas.pixels.len(), 30_000);
 }
+
+#[test]
+fn test_software_canvas_clear_color() {
+    let mut canvas = SoftwareCanvas::new(64, 48);
+    let queue = RenderQueue::new();
+    let cam = Camera::new();
+    canvas.render_frame(&queue, &cam, Color::SLATE);
+    let expected = Color::SLATE.to_u32_rgb();
+    assert!(canvas.pixels.iter().all(|&p| p == expected));
+}
