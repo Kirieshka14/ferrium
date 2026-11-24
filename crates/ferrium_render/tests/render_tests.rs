@@ -80,3 +80,14 @@ v 0 1 0
 f 1 2 99
 ").is_err());
 }
+
+#[test]
+fn test_repo_bundled_obj_models_load() {
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let crystal = std::fs::read_to_string(root.join("models/crystal.obj")).unwrap();
+    let ship = std::fs::read_to_string(root.join("models/spaceship.obj")).unwrap();
+    let m1 = Mesh3D::from_obj_str("crystal", &crystal).unwrap();
+    let m2 = Mesh3D::from_obj_str("spaceship", &ship).unwrap();
+    assert!(m1.triangles.len() >= 4);
+    assert!(m2.triangles.len() >= 4);
+}
