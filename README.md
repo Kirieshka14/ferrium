@@ -144,3 +144,11 @@ Launch the visual editor with `./run.sh editor` (or verify it headlessly via `ca
 - [ ] Tilemap & 2D physics broadphase
 - [ ] Multi-script entity messaging & shared blackboard resources
 - [ ] Optional `wgpu` hardware-accelerated render backend alongside `SoftwareCanvas`
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+## License
+
+Ferrium Engine is distributed under the [MIT License](LICENSE).
