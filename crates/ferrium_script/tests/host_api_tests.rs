@@ -1,0 +1,45 @@
+use ferrium_ecs::Entity;
+use ferrium_math::{Color, Vec2, Vec3};
+use ferrium_script::{
+    FerriumHost, ScriptCommand, ScriptComponent, ScriptSnapshot, VmResult,
+};
+
+fn sample_snapshot() -> ScriptSnapshot {
+    ScriptSnapshot {
+        self_entity: Entity { id: 42, generation: 1 },
+        self_pos: Vec2::new(10.0, 20.0),
+        self_pos3: Vec3::new(10.0, 5.0, 20.0),
+        self_rot: Vec3::new(0.1, 0.2, 0.3),
+        self_scale: Vec3::new(1.0, 2.0, 3.0),
+        self_vel: Vec2::new(3.0, -4.0),
+        self_hp: 60,
+        self_max_hp: 100,
+        player_pos: Vec2::new(13.0, 24.0),
+        player_hp: 85,
+        input_x: 0.75,
+        input_y: -0.25,
+        dt: 1.0 / 60.0,
+        elapsed_time: 12.5,
+        frame_count: 750,
+        jit_enabled: true,
+        jit_compiled_count: 4,
+    }
+}
+
+fn run_expr(src: &str) -> (VmResult, FerriumHost) {
+    let mut comp = ScriptComponent::from_source("host_test.fy", src).expect("compile failed");
+    let mut host = FerriumHost::new(sample_snapshot());
+    let res = comp.step(&mut host).expect("runtime failed");
+    (res, host)
+}
+
+#[test]
+fn test_entity_and_health_queries() {
+    let (res, _) = run_expr(
+        "return get_entity_id() + get_self_hp() + get_self_max_hp() + get_player_hp();",
+    );
+    match res {
+        VmResult::Done(v) => assert_eq!(v.to_string(), "287"),
+        other => panic!("unexpected {:?}", other),
+    }
+}
