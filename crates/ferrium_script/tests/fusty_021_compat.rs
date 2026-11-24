@@ -26,3 +26,16 @@ fn base_snapshot() -> ScriptSnapshot {
         jit_compiled_count: 0,
     }
 }
+
+#[test]
+fn test_nya_function_declaration_and_return() {
+    let mut comp = ScriptComponent::from_source(
+        "nya_basic.fy",
+        "nya double(x: i64) -> i64 { return x * 2; }\nreturn double(21);",
+    ).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    match comp.step(&mut host).unwrap() {
+        VmResult::Done(v) => assert_eq!(v.to_string(), "42"),
+        other => panic!("Unexpected {:?}", other),
+    }
+}
