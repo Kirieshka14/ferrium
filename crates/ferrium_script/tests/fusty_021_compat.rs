@@ -440,3 +440,15 @@ fn test_repo_shader_pulse_example_runs() {
     comp.step(&mut host).unwrap();
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetColor(_, _))));
 }
+
+#[test]
+fn test_repo_damage_pipeline_example_runs() {
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/damage_pipeline.fy");
+    let src = std::fs::read_to_string(&path).unwrap();
+    let mut comp = ScriptComponent::from_source(&path, &src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    let res = comp.step(&mut host).unwrap();
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "55"));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Damage { amount: 25, .. })));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::CameraShake { .. })));
+}
