@@ -14,3 +14,14 @@
 - **Safety-First Gameplay Scripting**: `meow { ... }` blocks explicitly gate raw engine teleportation intrinsics, while per-frame step budgets prevent infinite loops from freezing the engine.
 - **Hybrid 2D/3D Software Renderer**: Zero-GPU-driver-headache software rasterizer with 3D OBJ mesh loading, orbit camera, 2D sprites, and HUD text.
 - **Ferrium Studio IDE**: Live 2D/3D viewport, gizmo picking, FustyLang 0.2.1 syntax highlighter, live REPL, bytecode disassembler, per-function JIT eligibility badges, and hot-reload.
+
+## Workspace Architecture
+
+| Crate | Description |
+| --- | --- |
+| [`ferrium_math`](crates/ferrium_math) | `Vec2`, `Vec3`, `Vec4`, `Mat3`, `Mat4`, `Ray3`, `Rect`, `Transform`, and divide-free RGBA `Color` blending |
+| [`ferrium_ecs`](crates/ferrium_ecs) | Generational `Entity` allocator, `SparseSet<T>` component pools, singleton resources, and 5-stage `Schedule` |
+| [`ferrium_render`](crates/ferrium_render) | `SoftwareCanvas`, `RenderQueue`, `Camera` (2D / 2.5D / 3D orbit), Wavefront `.obj` `Mesh3D`, and `Sprite2D` |
+| [`ferrium_script`](crates/ferrium_script) | Native FustyLang 0.2.1 compiler, `ScriptComponent`, `FerriumHost` API bridge, `JitPolicy`, and `JitTelemetry` |
+| [`ferrium_engine`](crates/ferrium_engine) | Standalone playable runtime & deterministic headless verification CLI (`--headless-ticks`, `--jit-mode`, `--jit-stats`) |
+| [`ferrium_editor`](crates/ferrium_editor) | Visual `egui`/`eframe` studio editor with live viewport, inspector, code panel, and bytecode/JIT debugger |
