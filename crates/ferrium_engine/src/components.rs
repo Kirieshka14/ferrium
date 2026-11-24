@@ -100,3 +100,29 @@ pub struct Particle {
     pub size: f32,
     pub color: Color,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_health_is_dead_threshold() {
+        let mut hp = Health::new(100);
+        assert!(!hp.is_dead());
+        hp.current = 0;
+        assert!(hp.is_dead());
+        hp.current = -15;
+        assert!(hp.is_dead());
+    }
+
+    #[test]
+    fn test_player_and_boss_defaults() {
+        let player = Player::default();
+        assert!(player.speed > 0.0);
+        assert_eq!(player.facing, Vec2::new(1.0, 0.0));
+
+        let boss = Boss::default();
+        assert_eq!(boss.phase, 1);
+        assert_eq!(boss.state, "boot");
+    }
+}
