@@ -275,3 +275,11 @@ fn test_repo_boss_fight_example_compiles() {
     let src = std::fs::read_to_string("../../examples/boss_fight.fy").unwrap();
     assert!(compile_fusty_source(&src).is_ok());
 }
+
+#[test]
+fn test_repo_jit_physics_example_compiles() {
+    let src = std::fs::read_to_string("../../examples/jit_physics.fy").unwrap();
+    let art = compile_fusty_detailed(&src).unwrap();
+    assert_eq!(art.functions.len(), 2);
+    assert!(art.jit_eligible_count() >= 1);
+}
