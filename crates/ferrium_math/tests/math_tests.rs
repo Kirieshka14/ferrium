@@ -72,3 +72,17 @@ fn test_mat4_identity_and_translation() {
     let moved = t.mul_vec4(v);
     assert_eq!(moved, Vec4::new(7.0, 1.0, 5.0, 1.0));
 }
+
+#[test]
+fn test_mat4_scale_and_rotations() {
+    let s = Mat4::scale(Vec3::new(2.0, 3.0, 4.0));
+    assert_eq!(s.mul_vec4(Vec4::new(1.0, 1.0, 1.0, 1.0)), Vec4::new(2.0, 3.0, 4.0, 1.0));
+
+    let rz = Mat4::rotation_z(FRAC_PI_2);
+    let rzv = rz.mul_vec4(Vec4::new(1.0, 0.0, 0.0, 1.0));
+    assert!(rzv.x.abs() < 1e-5 && (rzv.y - 1.0).abs() < 1e-5);
+
+    let ry = Mat4::rotation_y(PI);
+    let ryv = ry.mul_vec4(Vec4::new(1.0, 0.0, 0.0, 1.0));
+    assert!((ryv.x + 1.0).abs() < 1e-5 && ryv.z.abs() < 1e-5);
+}
