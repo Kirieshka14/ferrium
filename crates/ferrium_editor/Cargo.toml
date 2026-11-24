@@ -1,7 +1,10 @@
 [package]
 name = "ferrium_editor"
-version = "0.2.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Visual 2D/3D studio editor with FustyLang 0.2.1 syntax highlighting, bytecode inspector, and JIT telemetry"
 
 [dependencies]
 ferrium_math = { path = "../ferrium_math" }
