@@ -214,3 +214,12 @@ fn test_coroutine_wait_sets_timer() {
     }
     assert!((comp.wait_remaining - 0.42).abs() < 1e-6);
 }
+
+#[test]
+fn test_infinite_loop_hits_step_budget() {
+    let mut comp = ScriptComponent::from_source("inf.fy", "while true { let x = 1; }").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    let err = comp.step(&mut host).unwrap_err();
+    assert!(matches!(err, ScriptError::Runtime { is_baka: false, .. }));
+    assert_eq!(comp.status, "error");
+}
