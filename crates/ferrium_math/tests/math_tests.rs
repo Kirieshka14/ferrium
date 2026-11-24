@@ -130,3 +130,10 @@ fn test_color_helpers_and_lerp() {
     assert_eq!(Color::BLACK.lerp(Color::WHITE, 2.0), Color::WHITE);
     assert_eq!(Color::BLACK.lerp(Color::WHITE, -1.0), Color::BLACK);
 }
+
+#[test]
+fn test_color_blend_over_fast_paths() {
+    let dst = 0x0011_2233;
+    assert_eq!(Color::rgba(255, 0, 0, 0).blend_over(dst), dst);
+    assert_eq!(Color::rgba(255, 128, 64, 255).blend_over(dst), 0x00FF_8040);
+}
