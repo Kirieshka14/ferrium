@@ -66,3 +66,13 @@ fn test_distance_and_dir_to_player() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_transform_3d_getters() {
+    let (p3, _) = run_expr("return get_self_pos3();");
+    let (r3, _) = run_expr("return get_self_rot();");
+    let (s3, _) = run_expr("return get_self_scale();");
+    assert!(matches!(p3, VmResult::Done(v) if v.to_string() == "vec3(10.00, 5.00, 20.00)"));
+    assert!(matches!(r3, VmResult::Done(v) if v.to_string() == "vec3(0.10, 0.20, 0.30)"));
+    assert!(matches!(s3, VmResult::Done(v) if v.to_string() == "vec3(1.00, 2.00, 3.00)"));
+}
