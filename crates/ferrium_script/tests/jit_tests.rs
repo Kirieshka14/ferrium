@@ -96,8 +96,8 @@ return sum_to(10);",
     let summary = &artifact.functions[0];
     assert_eq!(summary.name, "sum_to");
     assert_eq!(summary.arity, 1);
-    assert!(summary.jit_eligible);
-    assert!(check_jit_eligibility(&artifact.chunk, 0).is_ok());
+    assert!(summary.jit_kind.is_some());
+    assert!(check_jit_eligibility(&artifact.chunk, 0).is_some());
 }
 
 #[test]
@@ -114,8 +114,8 @@ fn test_jit_eager_matches_vm_interpreter() {
         }
         return tri(100);
     "#;
-    let mut comp_vm = ScriptComponent::from_source_with_policy("vm.fy", src, JitPolicy::Disabled).unwrap();
-    let mut comp_jit = ScriptComponent::from_source_with_policy("jit.fy", src, JitPolicy::Eager).unwrap();
+    let mut comp_vm = ScriptComponent::from_source_with_jit("vm.fy", src, JitPolicy::Disabled).unwrap();
+    let mut comp_jit = ScriptComponent::from_source_with_jit("jit.fy", src, JitPolicy::Eager).unwrap();
 
     let mut host_vm = FerriumHost::new(ScriptSnapshot::default());
     let mut host_jit = FerriumHost::new(ScriptSnapshot::default());
@@ -128,9 +128,8 @@ fn test_jit_eager_matches_vm_interpreter() {
 
 #[test]
 fn test_jit_disabled_performs_no_compilation() {
-    let src = "nya sq(x: i64) -> i64 { return x * x; }
-return sq(2) + sq(3) + sq(4) + sq(5);";
-    let mut comp = ScriptComponent::from_source_with_policy("no_jit.fy", src, JitPolicy::Disabled).unwrap();
+    let src = "nya sq(x: i64) -> i64 { return x * x; }\nreturn sq(2) + sq(3) + sq(4) + sq(5);";
+    let mut comp = ScriptComponent::from_source_with_jit("no_jit.fy", src, JitPolicy::Disabled).unwrap();
     let mut host = FerriumHost::new(ScriptSnapshot::default());
     let res = comp.step(&mut host).unwrap();
     assert!(matches!(res, VmResult::Done(v) if v.to_string() == "54"));
@@ -141,15 +140,8 @@ return sq(2) + sq(3) + sq(4) + sq(5);";
 
 #[test]
 fn test_jit_auto_hot_threshold() {
-    let src = "nya inc(x: i64) -> i64 { return x + 1; }
-let mut a = 0;
-a = inc(a);
-a = inc(a);
-a = inc(a);
-a = inc(a);
-a = inc(a);
-return a;";
-    let mut comp = ScriptComponent::from_source_with_policy("hot.fy", src, JitPolicy::Auto).unwrap();
+    let src = "nya inc(x: i64) -> i64 { return x + 1; }\nlet mut a = 0;\na = inc(a);\na = inc(a);\na = inc(a);\na = inc(a);\na = inc(a);\nreturn a;";
+    let mut comp = ScriptComponent::from_source_with_jit("hot.fy", src, JitPolicy::Auto).unwrap();
     let mut host = FerriumHost::new(ScriptSnapshot::default());
     let res = comp.step(&mut host).unwrap();
     assert!(matches!(res, VmResult::Done(v) if v.to_string() == "5"));
