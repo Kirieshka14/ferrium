@@ -55,3 +55,13 @@ fn test_legacy_fn_keyword_rejected() {
     let err = compile_fusty_detailed("fn old_style() { return 1; }").unwrap_err();
     assert!(matches!(err, ScriptError::Compile { stage: CompileStage::Parser, .. }));
 }
+
+#[test]
+fn test_uwu_operator_integers_returns_float_midpoint() {
+    let mut comp = ScriptComponent::from_source("uwu_int.fy", "return 10 uwu 21;").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    match comp.step(&mut host).unwrap() {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 15.5).abs() < 1e-6),
+        other => panic!("Unexpected {:?}", other),
+    }
+}
