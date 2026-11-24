@@ -138,3 +138,24 @@ return sq(2) + sq(3) + sq(4) + sq(5);";
     assert_eq!(tel.compiled_functions, 0);
     assert_eq!(tel.native_calls, 0);
 }
+
+#[test]
+fn test_jit_auto_hot_threshold() {
+    let src = "nya inc(x: i64) -> i64 { return x + 1; }
+let mut a = 0;
+a = inc(a);
+a = inc(a);
+a = inc(a);
+a = inc(a);
+a = inc(a);
+return a;";
+    let mut comp = ScriptComponent::from_source_with_policy("hot.fy", src, JitPolicy::Auto).unwrap();
+    let mut host = FerriumHost::new(ScriptSnapshot::default());
+    let res = comp.step(&mut host).unwrap();
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "5"));
+    if is_supported_platform() {
+        let tel = comp.jit_telemetry();
+        assert!(tel.compiled_functions >= 1);
+        assert!(tel.native_calls >= 1);
+    }
+}
