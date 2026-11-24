@@ -133,3 +133,19 @@ fn test_baka_trap_caught_safely() {
     assert_eq!(comp.status, "baka!");
     assert!(comp.last_baka.is_some());
 }
+
+#[test]
+fn test_recover_from_baka_preserves_jit_policy() {
+    let mut comp = ScriptComponent::from_source_with_jit(
+        "baka_rec.fy",
+        "baka!(\"oops\");",
+        JitPolicy::Eager,
+    ).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    assert!(comp.step(&mut host).is_err());
+    comp.recover_from_baka();
+    assert_eq!(comp.status, "recovered");
+    assert!(comp.last_error.is_none());
+    assert!(comp.last_baka.is_none());
+    assert_eq!(comp.jit_policy, JitPolicy::Eager);
+}
