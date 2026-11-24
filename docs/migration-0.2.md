@@ -25,3 +25,12 @@ if get_hp_ratio() < 0.25 {
     emit_event("low_hp", "critical");
 }
 ```
+
+## Benchmarking Migrated Scripts with `fusty_jit`
+
+Keep hot inner math loops inside pure numeric `nya` functions (avoiding host calls inside the loop body) so `fusty_jit` can compile them to native machine code:
+
+```bash
+cargo run -p ferrium_engine -- --script examples/jit_benchmark.fy --headless-ticks 30 --jit-mode eager --jit-stats
+cargo run -p ferrium_engine -- --script examples/jit_benchmark.fy --headless-ticks 30 --no-jit --jit-stats
+```
