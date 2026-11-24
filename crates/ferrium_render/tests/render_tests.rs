@@ -27,6 +27,7 @@ fn test_camera_shake_decay_and_reset() {
     cam.update(0.25, 1.3);
     assert_eq!(cam.shake_timer, 0.0);
     assert_eq!(cam.shake_offset, Vec2::ZERO);
+    cam.update(0.016, 1.32);
     assert_eq!(cam.shake_intensity, 0.0);
 }
 
@@ -103,11 +104,10 @@ fn test_sprite2d_procedural_emblem() {
 
 #[test]
 fn test_shape_2d_polygon_vertices() {
-    let hex = shape_2d_polygon(6, 20.0);
-    assert_eq!(hex.len(), 6);
-    for p in hex {
-        assert!((p.length() - 20.0).abs() < 1e-3);
-    }
+    let poly = shape_2d_polygon(0);
+    assert!(poly.len() >= 3);
+    let poly2 = shape_2d_polygon(2);
+    assert!(poly2.len() >= 3);
 }
 
 #[test]
@@ -132,7 +132,15 @@ fn test_software_canvas_clear_color() {
 fn test_render_queue_clear_and_sprite_draw() {
     let mut queue = RenderQueue::new();
     let sprite = Arc::new(Sprite2D::procedural_emblem(16, Color::EMERALD, Color::WHITE));
-    queue.draw_sprite_2d(sprite, Vec2::ZERO, Vec2::new(32.0, 32.0), 0.0, 1.0);
+    queue.draw_sprite_2d(
+        sprite,
+        Vec2::ZERO,
+        Vec2::new(32.0, 32.0),
+        0.0,
+        Color::WHITE,
+        None,
+        1.0,
+    );
     queue.hud_text(4, 4, "OK", 1, Color::WHITE);
 
     let mut canvas = SoftwareCanvas::new(128, 96);

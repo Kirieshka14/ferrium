@@ -1,4 +1,4 @@
-use ferrium_ecs::{Entity, Schedule, SparseSet, Stage, World};
+use ferrium_ecs::{ComponentPool, Entity, Schedule, SparseSet, Stage, World};
 
 #[derive(Debug, Clone, PartialEq)]
 struct Position(f32, f32);
@@ -135,16 +135,16 @@ fn test_schedule_deterministic_stage_order() {
     world.insert_resource(StageLog::default());
 
     let mut schedule = Schedule::new();
-    schedule.add_system(Stage::Render, |w| w.resource_mut::<StageLog>().unwrap().0.push("render"));
+    schedule.add_system(Stage::Cleanup, |w| w.resource_mut::<StageLog>().unwrap().0.push("cleanup"));
     schedule.add_system(Stage::Combat, |w| w.resource_mut::<StageLog>().unwrap().0.push("combat"));
-    schedule.add_system(Stage::Physics, |w| w.resource_mut::<StageLog>().unwrap().0.push("physics"));
-    schedule.add_system(Stage::Scripts, |w| w.resource_mut::<StageLog>().unwrap().0.push("scripts"));
+    schedule.add_system(Stage::FixedUpdate, |w| w.resource_mut::<StageLog>().unwrap().0.push("fixed"));
+    schedule.add_system(Stage::Script, |w| w.resource_mut::<StageLog>().unwrap().0.push("script"));
     schedule.add_system(Stage::Input, |w| w.resource_mut::<StageLog>().unwrap().0.push("input"));
 
     schedule.run_all(&mut world);
     assert_eq!(
         world.resource::<StageLog>().unwrap().0,
-        vec!["input", "scripts", "physics", "combat", "render"]
+        vec!["input", "script", "fixed", "combat", "cleanup"]
     );
 }
 
