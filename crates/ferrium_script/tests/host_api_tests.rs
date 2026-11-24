@@ -145,3 +145,10 @@ fn test_emit_event_variants() {
     assert!(matches!(&host.commands[0], ScriptCommand::EmitEvent { name, payload, .. } if name == "boss_phase" && payload.is_empty()));
     assert!(matches!(&host.commands[1], ScriptCommand::EmitEvent { name, payload, .. } if name == "loot" && payload == "crystal"));
 }
+
+#[test]
+fn test_camera_shake_and_particles() {
+    let (_, host) = run_expr("camera_shake(8.5, 0.4); spawn_particles(vec2(5.0, 6.0), 100, 255, 128, 64);");
+    assert!(matches!(host.commands[0], ScriptCommand::CameraShake { intensity, duration } if (intensity - 8.5).abs() < 1e-4 && (duration - 0.4).abs() < 1e-4));
+    assert!(matches!(host.commands[1], ScriptCommand::SpawnParticles { count: 64, color, .. } if color == Color::rgb(255, 128, 64)));
+}
