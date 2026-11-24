@@ -49,3 +49,9 @@ Each scripted entity owns a `ScriptComponent`:
 1. **Snapshot Phase**: The engine builds an immutable `ScriptSnapshot` containing the entity's 2D/3D transform, velocity, HP, player state, input axes, `dt`, elapsed time, frame counter, and JIT telemetry.
 2. **Execution Phase**: `ScriptComponent::step` runs the FustyLang 0.2.1 VM (with `fusty_jit` acceleration for hot `nya` functions) against a `FerriumHost` instance.
 3. **Deferred Command Flush**: Host mutations emit typed `ScriptCommand` values (`SetPos`, `SetPos3`, `SetRot`, `SetScale`, `SetColor`, `SetVel`, `SpawnHitbox`, `Heal`, `Damage`, `EmitEvent`, `RawTeleport`, `RawTeleport3`, `Purr`, `Log`) which the engine applies atomically to `World` after the VM yields.
+
+## Resilience & Safety Model
+
+- **Step-Budget Guard**: Every VM tick executes under a bounded instruction budget so accidental infinite loops in `.fy` scripts return a recoverable `ScriptError::Runtime` instead of hanging the main loop.
+- **Safe `baka!` Trapping**: Calling `baka!("reason")` halts only the offending script tick, increments `baka_count`, records `last_baka`, and allows clean recovery via `recover_from_baka()` while keeping the configured `JitPolicy`.
+- **Live Hot-Reload**: File modification timestamps are polled automatically. If an edited script contains a lexer, parser, or bytecode error, the previous healthy VM state remains intact while the error is displayed in the console/HUD.
