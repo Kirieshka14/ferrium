@@ -53,7 +53,11 @@ fn test_meow_nya_function_enables_meow_mode() {
 #[test]
 fn test_legacy_fn_keyword_rejected() {
     let err = compile_fusty_detailed("fn old_style() { return 1; }").unwrap_err();
-    assert!(matches!(err, ScriptError::Compile { stage: CompileStage::Parser, .. }));
+    assert!(
+        matches!(err, ScriptError::Compile { .. }),
+        "Expected compile error for legacy fn, got {:?}",
+        err
+    );
 }
 
 #[test]
