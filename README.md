@@ -50,3 +50,36 @@ cd ferrium
 # Run deterministic headless verification for Editor + Engine
 ./run.sh headless
 ```
+
+## FustyLang 0.2.1 Scripting Example
+
+```fusty
+/* Native FustyLang 0.2.1 script running inside Ferrium ECS */
+nya mitigate(raw_dmg: i64, armor: i64) -> i64 {
+    let reduced = raw_dmg - armor;
+    if reduced < 1 {
+        return 1;
+    }
+    return reduced;
+}
+
+let target = get_player_pos();
+let current = get_self_pos();
+
+// Smooth midpoint approach using the `uwu` operator
+set_self_pos(current uwu target);
+
+// Safe runtime invariant guard (caught by Ferrium without crashing)
+let dmg = mitigate(35, 10);
+if dmg <= 0 {
+    baka!("damage must remain positive");
+}
+
+// Explicit `meow` block required for raw teleportation
+if get_hp_ratio() < 0.5 {
+    meow {
+        raw_teleport(vec2(0.0, 0.0));
+    }
+    purr("Phase 2 blink executed!");
+}
+```
