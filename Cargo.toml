@@ -2,6 +2,10 @@
 members = [
     "crates/ferrium_math",
     "crates/ferrium_ecs",
+    "crates/ferrium_render",
+    "crates/ferrium_script",
+    "crates/ferrium_engine",
+    "crates/ferrium_editor",
 ]
 resolver = "2"
 
