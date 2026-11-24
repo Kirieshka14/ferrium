@@ -108,3 +108,13 @@ fn test_transform_helpers() {
     assert_eq!(tr3.z_order(), 3.0);
     assert_eq!(tr3.scale, Vec3::ONE);
 }
+
+#[test]
+fn test_rect_contains_point() {
+    let r = Rect::new(10.0, 20.0, 30.0, 40.0);
+    assert!(r.contains_point(Vec2::new(10.0, 20.0)));
+    assert!(r.contains_point(Vec2::new(40.0, 60.0)));
+    assert!(r.contains_point(Vec2::new(25.0, 35.0)));
+    assert!(!r.contains_point(Vec2::new(9.9, 20.0)));
+    assert!(!r.contains_point(Vec2::new(40.1, 60.0)));
+}
