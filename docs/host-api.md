@@ -35,3 +35,15 @@ All native intrinsics are exposed to FustyLang 0.2.1 scripts through `FerriumHos
 | `get_self_vel()` | `() -> vec2` | Current 2D velocity |
 | `set_self_vel(vel)` | `(vec2) -> nil` | Emits `ScriptCommand::SetVel` |
 | `set_self_color(r, g, b[, a])` | `(i64, i64, i64[, i64]) -> nil` | Clamps channels to `0..=255` and emits `ScriptCommand::SetColor` |
+
+## Combat, Effects & Events
+
+| Intrinsic | Signature | Description |
+| --- | --- | --- |
+| `heal_self(amount)` | `(i64) -> i64` | Clamps HP up to `max_hp`, emits `Heal`, returns new HP |
+| `damage_self(amount)` | `(i64) -> i64` | Clamps HP down to `0`, emits `Damage`, returns new HP |
+| `spawn_hitbox(offset, size, dmg, dur[, kb])` | `(vec2, vec2, i64, f64[, f64]) -> nil` | Spawns combat hitbox (default knockback `260.0`) |
+| `set_boss_state(name)` | `(string) -> nil` | Updates boss state label |
+| `camera_shake(intensity, duration)` | `(f64, f64) -> nil` | Triggers screen shake effect |
+| `spawn_particles(pos, count, r, g, b)` | `(vec2, i64, i64, i64, i64) -> nil` | Spawns `1..=64` colored particles |
+| `emit_event(name[, payload])` | `(string[, string]) -> nil` | Emits `ScriptCommand::EmitEvent` |
