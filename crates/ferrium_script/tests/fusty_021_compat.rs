@@ -386,3 +386,12 @@ fn test_recursive_nya_factorial() {
         other => panic!("Unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_is_meow_scope_tracking() {
+    let src = "let a = is_meow();\nlet mut b = false;\nmeow { b = is_meow(); }\nlet c = is_meow();\npurr(a, b, c);";
+    let mut comp = ScriptComponent::from_source("is_meow.fy", src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    comp.step(&mut host).unwrap();
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(s) if s == "false true false")));
+}
