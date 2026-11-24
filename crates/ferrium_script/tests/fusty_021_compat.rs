@@ -330,3 +330,12 @@ fn test_repo_event_bus_example_heals_low_hp() {
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Heal { amount: 25, .. })));
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::EmitEvent { name, .. } if name == "emergency_heal")));
 }
+
+#[test]
+fn test_repo_jit_benchmark_example_runs() {
+    let src = std::fs::read_to_string("../../examples/jit_benchmark.fy").unwrap();
+    let mut comp = ScriptComponent::from_source_with_jit("jit_benchmark.fy", &src, JitPolicy::Eager).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Done(_)));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(s) if s.contains("102334155"))));
+}
