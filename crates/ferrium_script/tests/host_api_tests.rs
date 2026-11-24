@@ -130,3 +130,11 @@ fn test_set_self_color_rgb_and_rgba() {
     assert!(matches!(host.commands[0], ScriptCommand::SetColor(_, c) if c == Color::rgba(255, 0, 128, 255)));
     assert!(matches!(host.commands[1], ScriptCommand::SetColor(_, c) if c == Color::rgba(10, 20, 30, 120)));
 }
+
+#[test]
+fn test_heal_and_damage_self() {
+    let (res, host) = run_expr("let h1 = heal_self(50); let h2 = damage_self(120); return h1 * 1000 + h2;");
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "100000"));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Heal { amount: 50, .. })));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Damage { amount: 120, .. })));
+}
