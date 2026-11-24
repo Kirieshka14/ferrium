@@ -52,3 +52,17 @@ fn test_hp_ratio_and_is_alive() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_distance_and_dir_to_player() {
+    let (res, _) = run_expr("return distance_to_player();");
+    match res {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 5.0).abs() < 1e-5),
+        other => panic!("unexpected {:?}", other),
+    }
+    let (res2, _) = run_expr("return dir_to_player();");
+    match res2 {
+        VmResult::Done(v) => assert_eq!(v.to_string(), "vec2(0.60, 0.80)"),
+        other => panic!("unexpected {:?}", other),
+    }
+}
