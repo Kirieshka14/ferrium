@@ -137,3 +137,12 @@ fn test_color_blend_over_fast_paths() {
     assert_eq!(Color::rgba(255, 0, 0, 0).blend_over(dst), dst);
     assert_eq!(Color::rgba(255, 128, 64, 255).blend_over(dst), 0x00FF_8040);
 }
+
+#[test]
+fn test_mat3_orthogonality_inverse() {
+    let rot = Mat3::from_euler_xyz(Vec3::new(0.4, 0.9, -0.3));
+    let v = Vec3::new(2.0, -1.5, 3.25);
+    let rotated = rot.mul_vec3(v);
+    let restored = rot.mul_vec3_transpose(rotated);
+    assert!((restored - v).length() < 1e-4);
+}
