@@ -65,3 +65,13 @@ fn test_uwu_operator_integers_returns_float_midpoint() {
         other => panic!("Unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_uwu_operator_floats() {
+    let mut comp = ScriptComponent::from_source("uwu_flt.fy", "return 2.5 uwu 7.5;").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    match comp.step(&mut host).unwrap() {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 5.0).abs() < 1e-6),
+        other => panic!("Unexpected {:?}", other),
+    }
+}
