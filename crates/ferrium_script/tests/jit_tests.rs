@@ -68,3 +68,20 @@ fn test_jit_telemetry_accumulate() {
     assert_eq!(tel.compiled_bytes, 192);
     assert_eq!(tel.compiled_names, vec!["fib".to_string(), "step".to_string()]);
 }
+
+#[test]
+fn test_jit_telemetry_hit_rate() {
+    let empty = JitTelemetry::default();
+    assert_eq!(empty.native_hit_rate(), 0.0);
+
+    let stats = JitStats {
+        compiled_functions: 1,
+        native_calls: 3,
+        vm_fallbacks: 1,
+        compiled_bytes: 64,
+        compiled_names: vec!["calc".into()],
+    };
+    let tel = JitTelemetry::from_stats(&stats);
+    assert!((tel.native_hit_rate() - 0.75).abs() < 1e-6);
+    assert_eq!(tel.platform_supported, is_supported_platform());
+}
