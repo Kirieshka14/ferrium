@@ -149,3 +149,9 @@ fn test_recover_from_baka_preserves_jit_policy() {
     assert!(comp.last_baka.is_none());
     assert_eq!(comp.jit_policy, JitPolicy::Eager);
 }
+
+#[test]
+fn test_is_baka_message_helper() {
+    assert!(is_baka_message("[BAKA! >///<] bad value"));
+    assert!(!is_baka_message("Unknown native host function 'foo'"));
+}
