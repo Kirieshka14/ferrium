@@ -65,3 +65,16 @@ fn test_remove_single_component() {
     assert!(world.get::<Velocity>(e).is_none());
     assert_eq!(world.get::<Position>(e), Some(&Position(3.0, 4.0)));
 }
+
+#[test]
+fn test_despawn_cleans_all_pools() {
+    let mut world = World::new();
+    let e = world.spawn();
+    world.insert(e, Position(1.0, 1.0));
+    world.insert(e, Velocity(2.0, 2.0));
+    world.insert(e, Health(99));
+    world.despawn(e);
+    assert_eq!(world.storage::<Position>().map(|s| s.len()), Some(0));
+    assert_eq!(world.storage::<Velocity>().map(|s| s.len()), Some(0));
+    assert_eq!(world.storage::<Health>().map(|s| s.len()), Some(0));
+}
