@@ -2276,7 +2276,18 @@ impl FerriumStudioApp {
         if allow_extras && self.code_editor.show_bytecode {
             ui.separator();
             ui.columns(2, |cols| {
-                cols[0].label(egui::RichText::new("Fusty 0.2.1 Bytecode & JIT Analysis").strong());
+                let jit_elig = self
+                    .code_editor
+                    .active()
+                    .map(|t| t.last_check.jit_eligible_count)
+                    .unwrap_or(0);
+                cols[0].label(
+                    egui::RichText::new(format!(
+                        "Fusty 0.2.1 Bytecode & JIT Analysis ({} eligible)",
+                        jit_elig
+                    ))
+                    .strong(),
+                );
                 egui::ScrollArea::vertical()
                     .id_salt("disasm_exp_scroll")
                     .max_height(150.0)
