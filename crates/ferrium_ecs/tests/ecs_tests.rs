@@ -128,3 +128,22 @@ fn test_world_resources() {
     world.resource_mut::<StageLog>().unwrap().0.push("tick");
     assert_eq!(world.resource::<StageLog>().unwrap().0, vec!["init", "tick"]);
 }
+
+#[test]
+fn test_schedule_deterministic_stage_order() {
+    let mut world = World::new();
+    world.insert_resource(StageLog::default());
+
+    let mut schedule = Schedule::new();
+    schedule.add_system(Stage::Render, |w| w.resource_mut::<StageLog>().unwrap().0.push("render"));
+    schedule.add_system(Stage::Combat, |w| w.resource_mut::<StageLog>().unwrap().0.push("combat"));
+    schedule.add_system(Stage::Physics, |w| w.resource_mut::<StageLog>().unwrap().0.push("physics"));
+    schedule.add_system(Stage::Scripts, |w| w.resource_mut::<StageLog>().unwrap().0.push("scripts"));
+    schedule.add_system(Stage::Input, |w| w.resource_mut::<StageLog>().unwrap().0.push("input"));
+
+    schedule.run_all(&mut world);
+    assert_eq!(
+        world.resource::<StageLog>().unwrap().0,
+        vec!["input", "scripts", "physics", "combat", "render"]
+    );
+}
