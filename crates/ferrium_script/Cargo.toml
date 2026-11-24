@@ -1,0 +1,13 @@
+[package]
+name = "ferrium_script"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+fusty_lexer = { workspace = true }
+fusty_parser = { workspace = true }
+fusty_bytecode = { workspace = true }
+fusty_jit = { workspace = true }
+fusty_vm = { workspace = true }
+ferrium_math = { path = "../ferrium_math" }
+ferrium_ecs = { path = "../ferrium_ecs" }
