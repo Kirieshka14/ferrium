@@ -113,3 +113,13 @@ fn test_set_and_rotate_self() {
         ScriptCommand::SetRot(_, r) if (r.x - 0.5).abs() < 1e-4 && (r.y - 1.5).abs() < 1e-4
     )));
 }
+
+#[test]
+fn test_set_and_scale_self() {
+    let (res, host) = run_expr("set_self_scale(vec3(2.0, 3.0, 4.0)); return scale_self(0.5);");
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "vec3(1.00, 1.50, 2.00)"));
+    assert!(host.commands.iter().any(|c| matches!(
+        c,
+        ScriptCommand::SetScale(_, s) if *s == Vec3::new(1.0, 1.5, 2.0)
+    )));
+}
