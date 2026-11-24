@@ -253,3 +253,11 @@ fn test_raw_teleport3_meow_gate() {
         ScriptCommand::RawTeleport3(_, p) if *p == Vec3::new(7.0, 8.0, 9.0)
     )));
 }
+
+#[test]
+fn test_unknown_host_function_error() {
+    let mut comp = ScriptComponent::from_source("unknown.fy", "nonexistent_engine_call();").unwrap();
+    let mut host = FerriumHost::new(sample_snapshot());
+    let err = comp.step(&mut host).unwrap_err();
+    assert!(err.to_string().contains("nonexistent_engine_call"));
+}
