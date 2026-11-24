@@ -35,3 +35,10 @@ Ferrium is structured as a six-crate Cargo workspace with strict unidirectional 
   3. `Stage::FixedUpdate`
   4. `Stage::Combat`
   5. `Stage::Cleanup`
+
+## Hybrid 2D/3D Software Renderer (`ferrium_render`)
+
+`RenderQueue` decouples simulation from rasterization:
+- Systems push depth-sorted `WorldCommand` items (2D rects, polygons, sprites, 3D wire/solid boxes, `Mesh3D` instances, gizmos, fading ground grids) and `HudCommand` overlays.
+- `SoftwareCanvas::render_frame` sorts world commands by Z-order, projects 3D geometry through `Camera` (`Orthographic2D`, `Hybrid25D`, or `use_orbit_3d`), and rasterizes with divide-free alpha blending (`Color::blend_over`).
+- `Mesh3D::from_obj_str` parses Wavefront `.obj` files (including quads, n-gons, negative indices, and `v/vt/vn` triples) and normalizes bounds automatically.
