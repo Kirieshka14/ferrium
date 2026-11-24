@@ -395,3 +395,11 @@ fn test_is_meow_scope_tracking() {
     comp.step(&mut host).unwrap();
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(s) if s == "false true false")));
 }
+
+#[test]
+fn test_script_error_display_formatting() {
+    let e1 = ScriptError::runtime(12, "[BAKA! >///<] bad");
+    assert!(e1.to_string().contains("BAKA trap at line 12"));
+    let e2 = ScriptError::Io { path: "a.fy".into(), message: "not found".into() };
+    assert!(e2.to_string().contains("Failed to read 'a.fy'"));
+}
