@@ -13,3 +13,9 @@ fn test_vec2_arithmetic() {
     assert_eq!(a / 5.0, Vec2::new(1.0, 0.0));
     assert_eq!(-a, Vec2::new(-5.0, 0.0));
 }
+
+#[test]
+fn test_vec2_normalized_zero_safe() {
+    assert_eq!(Vec2::ZERO.normalized(), Vec2::ZERO);
+    assert_eq!(Vec2::new(1e-8, 0.0).normalized(), Vec2::ZERO);
+}
