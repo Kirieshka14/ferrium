@@ -4,14 +4,17 @@ use std::path::PathBuf;
 use ferrium_ecs::{Entity, World};
 use ferrium_math::{Color, Rect, Transform, Vec2, Vec3};
 use ferrium_render::{Camera, ProjectionMode, RenderBackend, RenderQueue, SoftwareCanvas};
-use ferrium_script::{FerriumHost, ScriptCommand, ScriptComponent, ScriptSnapshot, VmResult};
+use ferrium_script::{
+    FerriumHost, JitPolicy, JitTelemetry, ScriptCommand, ScriptComponent, ScriptSnapshot, VmResult,
+};
 
 use crate::components::{Boss, Collider, Health, Hitbox, Particle, Player, Team, Velocity};
 use crate::input::InputState;
 
 const FALLBACK_BOSS_SCRIPT: &str = r#"
+purr("Fallback Boss AI online (FustyLang 0.2.1)");
 while true {
-    let dir = (get_player_pos() - get_self_pos()).normalized();
+    let dir = dir_to_player();
     set_boss_state("chase");
     set_self_vel(dir * 160.0);
     wait 0.25;
@@ -29,7 +32,9 @@ pub struct FerriumGame {
     pub show_debug_hitboxes: bool,
     pub arena_half_size: Vec2,
     pub script_path: PathBuf,
+    pub jit_policy: JitPolicy,
     pub elapsed: f64,
+    pub tick_count: u64,
     pub fps: f32,
     pub frame_arena_resets: u64,
     pub total_hitboxes_spawned: u64,
@@ -38,6 +43,10 @@ pub struct FerriumGame {
 
 impl FerriumGame {
     pub fn new(script_path: PathBuf) -> Self {
+        Self::with_jit_policy(script_path, JitPolicy::default())
+    }
+
+    pub fn with_jit_policy(script_path: PathBuf, jit_policy: JitPolicy) -> Self {
         let mut game = Self {
             world: World::new(),
             camera: Camera::new(),
@@ -49,7 +58,9 @@ impl FerriumGame {
             show_debug_hitboxes: true,
             arena_half_size: Vec2::new(420.0, 250.0),
             script_path,
+            jit_policy,
             elapsed: 0.0,
+            tick_count: 0,
             fps: 60.0,
             frame_arena_resets: 0,
             total_hitboxes_spawned: 0,
@@ -57,6 +68,25 @@ impl FerriumGame {
         };
         game.populate_arena();
         game
+    }
+
+    pub fn set_jit_policy(&mut self, policy: JitPolicy) {
+        self.jit_policy = policy;
+        for entity in self.world.entities_with::<ScriptComponent>() {
+            if let Some(script) = self.world.get_mut::<ScriptComponent>(entity) {
+                script.set_jit_policy(policy);
+            }
+        }
+    }
+
+    pub fn jit_telemetry(&self) -> JitTelemetry {
+        let mut telemetry = JitTelemetry::default();
+        for entity in self.world.entities_with::<ScriptComponent>() {
+            if let Some(script) = self.world.get::<ScriptComponent>(entity) {
+                telemetry.accumulate(script.vm.jit_stats());
+            }
+        }
+        telemetry
     }
 
     pub fn reset(&mut self) {
@@ -101,15 +131,23 @@ impl FerriumGame {
         self.world.insert(boss, Team::Boss);
         self.world.insert(boss, Boss::default());
 
-        let script = match ScriptComponent::from_file(&self.script_path) {
+        let script = match ScriptComponent::from_file_with_jit(&self.script_path, self.jit_policy) {
             Ok(s) => {
-                self.push_log(format!("Loaded {}", self.script_path.display()));
+                self.push_log(format!(
+                    "Loaded {} ({})",
+                    self.script_path.display(),
+                    self.jit_policy.label()
+                ));
                 s
             }
             Err(err) => {
                 self.push_log(format!("Fallback script ({})", err));
-                let mut s = ScriptComponent::from_source(&self.script_path, FALLBACK_BOSS_SCRIPT)
-                    .expect("Fallback Fusty script must compile");
+                let mut s = ScriptComponent::from_source_with_jit(
+                    &self.script_path,
+                    FALLBACK_BOSS_SCRIPT,
+                    self.jit_policy,
+                )
+                .expect("Fallback Fusty script must compile");
                 s.last_error = Some(err);
                 s
             }
@@ -352,11 +390,13 @@ impl FerriumGame {
                             input_y: 0.0,
                             dt: dt as f64,
                             elapsed_time: self.elapsed,
+                            frame_count: self.tick_count,
+                            jit_enabled: script.jit_policy.is_enabled(),
+                            jit_compiled_count: script.vm.jit_stats().compiled_functions,
                         };
                         let mut host = FerriumHost::new(snapshot);
-                        match script.vm.run_with_host(&script.chunk, &mut host) {
+                        match script.step(&mut host) {
                             Ok(VmResult::Waiting { duration_sec }) => {
-                                script.wait_remaining = duration_sec;
                                 script.status = format!("wait {:.2}s", duration_sec);
                             }
                             Ok(VmResult::Yielded) => {
@@ -365,11 +405,8 @@ impl FerriumGame {
                             Ok(VmResult::Done(_)) => {
                                 script.status = "done".into();
                             }
-                            Err(e) => {
-                                let msg = format!("VM line {}: {}", e.line, e.message);
-                                script.last_error = Some(msg.clone());
-                                script.status = "error".into();
-                                runtime_errors.push(msg);
+                            Err(err) => {
+                                runtime_errors.push(err.to_string());
                             }
                         }
                         used_meow = host.used_meow;
@@ -382,6 +419,7 @@ impl FerriumGame {
                 // O(1) Frame Arena pointer reset at the end of every tick!
                 script.vm.reset_frame();
                 self.frame_arena_resets += 1;
+                self.tick_count += 1;
 
                 if used_meow {
                     script.meow_flash_timer = 0.75;
@@ -500,8 +538,28 @@ impl FerriumGame {
                 ScriptCommand::SpawnParticles { pos, count, color } => {
                     self.spawn_particle_burst(pos, count, color, 180.0);
                 }
+                ScriptCommand::Heal { entity, amount } => {
+                    if let Some(h) = self.world.get_mut::<Health>(entity) {
+                        h.current = (h.current + amount).min(h.max);
+                    }
+                }
+                ScriptCommand::Damage { entity, amount } => {
+                    if let Some(h) = self.world.get_mut::<Health>(entity) {
+                        h.current = (h.current - amount).max(0);
+                    }
+                }
+                ScriptCommand::EmitEvent { name, payload, .. } => {
+                    if payload.is_empty() {
+                        self.push_log(format!("[EVENT] {}", name));
+                    } else {
+                        self.push_log(format!("[EVENT] {}: {}", name, payload));
+                    }
+                }
                 ScriptCommand::Log(msg) => {
                     self.push_log(msg);
+                }
+                ScriptCommand::Purr(msg) => {
+                    self.push_log(format!("[purr] {}", msg));
                 }
             }
         }
