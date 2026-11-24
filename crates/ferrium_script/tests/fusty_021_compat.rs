@@ -122,3 +122,14 @@ fn test_uwu_type_mismatch_error() {
     let err = comp.step(&mut host).unwrap_err();
     assert!(matches!(err, ScriptError::Runtime { .. }));
 }
+
+#[test]
+fn test_baka_trap_caught_safely() {
+    let mut comp = ScriptComponent::from_source("baka.fy", "baka!(\"invalid state\");").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    let err = comp.step(&mut host).unwrap_err();
+    assert!(err.is_baka(), "Expected baka error, got {:?}", err);
+    assert_eq!(comp.baka_count, 1);
+    assert_eq!(comp.status, "baka!");
+    assert!(comp.last_baka.is_some());
+}
