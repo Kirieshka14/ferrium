@@ -110,3 +110,20 @@ Launch the visual editor with `./run.sh editor` (or verify it headlessly via `ca
 - **FustyLang 0.2.1 Code Panel**: Dedicated syntax highlighting for `nya`, `meow`, `uwu`, `purr`, `baka!`, and nested block comments, plus one-click starter script templates.
 - **Bytecode & JIT Inspector**: Live disassembly of compiled FustyLang bytecode (`Opcode::Uwu`, `Opcode::Baka`, etc.), per-function JIT eligibility badges, and a toolbar JIT policy switcher (`Auto` / `Eager` / `Off`) with live native call counters.
 - **Resilient Hot-Reload**: Editing a `.fy` script reloads automatically; syntax errors or `baka!` traps are surfaced cleanly without tearing down the scene.
+
+## Bundled Examples & Starter Scripts
+
+| Script | Highlights |
+| --- | --- |
+| [`examples/boss_arena.fy`](examples/boss_arena.fy) | Multi-phase boss AI with `wait` coroutines, `spawn_hitbox`, and Phase 2 `meow` teleport |
+| [`examples/jit_benchmark.fy`](examples/jit_benchmark.fy) | Hot iterative `fib_iter(40)` loop showcasing native `fusty_jit` acceleration |
+| [`examples/jit_physics.fy`](examples/jit_physics.fy) | JIT-eligible numeric physics integrators |
+| [`examples/cuddle_tween.fy`](examples/cuddle_tween.fy) | Waypoint interpolation powered by the `uwu` operator |
+| [`examples/baka_guard.fy`](examples/baka_guard.fy) | Safe `baka!(...)` invariant guard and automatic VM recovery |
+| [`examples/event_bus.fy`](examples/event_bus.fy) | Low-HP detection triggering `emit_event` + `heal_self` |
+| [`examples/orbit_swarm.fy`](examples/orbit_swarm.fy) | 3D orbital transform choreography (`set_self_pos3`, `rotate_self`) |
+| [`examples/wave_spawner.fy`](examples/wave_spawner.fy) | Wave scaling with `nya` helpers and event dispatch |
+| [`examples/steering_ai.fy`](examples/steering_ai.fy) | Smooth velocity steering with `dir_to_player()` and `uwu` |
+| [`examples/shader_pulse.fy`](examples/shader_pulse.fy) | Procedural RGB pulsing using `smoothstep` and `set_self_color` |
+| [`examples/damage_pipeline.fy`](examples/damage_pipeline.fy) | Armor mitigation, `baka!` guard, `damage_self`, and `camera_shake` |
+| [`scripts/`](scripts/) | Reusable starter behaviors (`Player.fy`, `SmoothFollow.fy`, `OrbitCamera.fy`, `ColorPulse.fy`, `HealthRegen.fy`, `SpinModel.fy`) |
