@@ -138,3 +138,10 @@ fn test_heal_and_damage_self() {
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Heal { amount: 50, .. })));
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Damage { amount: 120, .. })));
 }
+
+#[test]
+fn test_emit_event_variants() {
+    let (_, host) = run_expr("emit_event("boss_phase"); emit_event("loot", "crystal");");
+    assert!(matches!(&host.commands[0], ScriptCommand::EmitEvent { name, payload, .. } if name == "boss_phase" && payload.is_empty()));
+    assert!(matches!(&host.commands[1], ScriptCommand::EmitEvent { name, payload, .. } if name == "loot" && payload == "crystal"));
+}
