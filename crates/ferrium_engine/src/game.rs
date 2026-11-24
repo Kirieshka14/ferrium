@@ -42,6 +42,7 @@ pub struct FerriumGame {
 }
 
 impl FerriumGame {
+    #[allow(dead_code)]
     pub fn new(script_path: PathBuf) -> Self {
         Self::with_jit_policy(script_path, JitPolicy::default())
     }
@@ -373,6 +374,11 @@ impl FerriumGame {
                 }
 
                 if self_hp > 0 {
+                    if script.status == "done" {
+                        script.vm.reset_frame();
+                        self.frame_arena_resets += 1;
+                        continue;
+                    }
                     script.wait_remaining = (script.wait_remaining - dt as f64).max(0.0);
                     if script.wait_remaining <= 0.0 {
                         let snapshot = ScriptSnapshot {
