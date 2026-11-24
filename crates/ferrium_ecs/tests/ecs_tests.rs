@@ -93,3 +93,16 @@ fn test_stale_generation_isolation() {
     assert!(world.get::<Health>(old).is_none());
     assert_eq!(world.get::<Health>(fresh), Some(&Health(999)));
 }
+
+#[test]
+fn test_sparse_set_iteration() {
+    let mut set = SparseSet::new();
+    let entities: Vec<Entity> = (0..5).map(|id| Entity { id, generation: 0 }).collect();
+    for (i, &e) in entities.iter().enumerate() {
+        set.insert(e, i as i32 * 10);
+    }
+    set.remove(entities[2]);
+    let sum: i32 = set.iter().map(|(_, v)| *v).sum();
+    assert_eq!(set.len(), 4);
+    assert_eq!(sum, 0 + 10 + 30 + 40);
+}
