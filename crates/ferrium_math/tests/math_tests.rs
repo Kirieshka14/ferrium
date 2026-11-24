@@ -171,3 +171,13 @@ fn test_ray3_rotated_obb_intersection() {
         .expect("ray should hit rotated cube");
     assert!(t > 3.5 && t < 3.7);
 }
+
+#[test]
+fn test_ray3_closest_param_on_axis() {
+    let ray = Ray3::new(Vec3::new(3.0, 0.0, 5.0), Vec3::new(0.0, 0.0, -1.0));
+    let s = ray.closest_param_on_axis(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0)).unwrap();
+    assert!((s - 3.0).abs() < 1e-4);
+
+    let parallel = Ray3::new(Vec3::new(0.0, 1.0, 0.0), Vec3::new(1.0, 0.0, 0.0));
+    assert!(parallel.closest_param_on_axis(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0)).is_none());
+}
