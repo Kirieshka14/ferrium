@@ -101,3 +101,12 @@ cargo run -p ferrium_engine -- --headless-ticks 120 --no-jit --jit-stats
 # Run a custom script
 cargo run -p ferrium_engine -- --script examples/jit_benchmark.fy --headless-ticks 30 --jit-stats
 ```
+
+## Ferrium Studio Editor
+
+Launch the visual editor with `./run.sh editor` (or verify it headlessly via `cargo run -p ferrium_editor -- --headless-check`):
+
+- **2D / 3D Orbit Viewport**: Toggle between 2D/2.5D and 3D orbit projection, pick entities via `Ray3` OBB intersection, and manipulate transforms with gizmos.
+- **FustyLang 0.2.1 Code Panel**: Dedicated syntax highlighting for `nya`, `meow`, `uwu`, `purr`, `baka!`, and nested block comments, plus one-click starter script templates.
+- **Bytecode & JIT Inspector**: Live disassembly of compiled FustyLang bytecode (`Opcode::Uwu`, `Opcode::Baka`, etc.), per-function JIT eligibility badges, and a toolbar JIT policy switcher (`Auto` / `Eager` / `Off`) with live native call counters.
+- **Resilient Hot-Reload**: Editing a `.fy` script reloads automatically; syntax errors or `baka!` traps are surfaced cleanly without tearing down the scene.
