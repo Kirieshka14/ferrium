@@ -38,11 +38,20 @@ fn resolve_script_path(custom: Option<&str>) -> PathBuf {
     cwd_candidate
 }
 
-fn run_headless(script_path: PathBuf, ticks: usize) {
-    println!("=== [Ferrium Engine] Headless Verification ({} ticks @ 60Hz) ===", ticks);
+fn run_headless(
+    script_path: PathBuf,
+    ticks: usize,
+    jit_policy: ferrium_script::JitPolicy,
+    print_jit_stats: bool,
+) {
+    println!(
+        "=== [Ferrium Engine] Headless Verification ({} ticks @ 60Hz, {}) ===",
+        ticks,
+        jit_policy.label()
+    );
     println!("  Script: {}", script_path.display());
 
-    let mut game = FerriumGame::new(script_path);
+    let mut game = FerriumGame::with_jit_policy(script_path, jit_policy);
     let mut canvas = SoftwareCanvas::new(1120, 680);
 
     for tick in 0..ticks {
@@ -82,6 +91,7 @@ fn run_headless(script_path: PathBuf, ticks: usize) {
     let script = game.world.get::<ScriptComponent>(game.boss_entity);
     let script_err = script.and_then(|s| s.last_error.clone());
     let reloads = script.map(|s| s.reload_count).unwrap_or(0);
+    let jit_stats = game.jit_telemetry();
 
     println!("  Elapsed simulated time : {:.2}s", game.elapsed);
     println!("  ECS alive entities     : {}", game.world.entity_count());
@@ -92,6 +102,15 @@ fn run_headless(script_path: PathBuf, ticks: usize) {
     println!("  Hot reloads            : {}", reloads);
     println!("  Rendered pixels != bg  : {} / {}", drawn_pixels, canvas.pixels.len());
     println!("  Script error           : {:?}", script_err);
+    if print_jit_stats {
+        println!(
+            "  FustyJIT telemetry     : compiled={} native_calls={} fallbacks={} bytes={}",
+            jit_stats.compiled_functions,
+            jit_stats.native_calls,
+            jit_stats.vm_fallbacks,
+            jit_stats.compiled_bytes
+        );
+    }
 
     if let Some(err) = script_err {
         eprintln!("Headless verification failed with script error: {}", err);
@@ -115,9 +134,9 @@ struct FerriumApp {
 }
 
 impl FerriumApp {
-    fn new(script_path: PathBuf) -> Self {
+    fn new(script_path: PathBuf, jit_policy: ferrium_script::JitPolicy) -> Self {
         Self {
-            game: FerriumGame::new(script_path),
+            game: FerriumGame::with_jit_policy(script_path, jit_policy),
             input: InputState::default(),
             canvas: SoftwareCanvas::new(1120, 680),
             window: None,
@@ -267,6 +286,8 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let mut script_arg: Option<String> = None;
     let mut headless_ticks: Option<usize> = None;
+    let mut jit_policy = ferrium_script::JitPolicy::default();
+    let mut print_jit_stats = false;
 
     let mut i = 1;
     while i < args.len() {
@@ -279,6 +300,24 @@ fn main() {
                 headless_ticks = args[i + 1].parse::<usize>().ok();
                 i += 2;
             }
+            "--jit" => {
+                jit_policy = ferrium_script::JitPolicy::Eager;
+                i += 1;
+            }
+            "--no-jit" => {
+                jit_policy = ferrium_script::JitPolicy::Disabled;
+                i += 1;
+            }
+            "--jit-mode" if i + 1 < args.len() => {
+                if let Some(parsed) = ferrium_script::JitPolicy::parse(&args[i + 1]) {
+                    jit_policy = parsed;
+                }
+                i += 2;
+            }
+            "--jit-stats" => {
+                print_jit_stats = true;
+                i += 1;
+            }
             _ => {
                 i += 1;
             }
@@ -288,12 +327,12 @@ fn main() {
     let script_path = resolve_script_path(script_arg.as_deref());
 
     if let Some(ticks) = headless_ticks {
-        run_headless(script_path, ticks);
+        run_headless(script_path, ticks, jit_policy, print_jit_stats);
         return;
     }
 
     let event_loop = EventLoop::new().expect("Failed to create winit EventLoop");
     event_loop.set_control_flow(ControlFlow::Poll);
-    let mut app = FerriumApp::new(script_path);
+    let mut app = FerriumApp::new(script_path, jit_policy);
     event_loop.run_app(&mut app).expect("Event loop error");
 }
