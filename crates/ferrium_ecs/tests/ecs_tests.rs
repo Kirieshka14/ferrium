@@ -45,3 +45,12 @@ fn test_component_overwrite() {
     world.insert(e, Health(45));
     assert_eq!(world.get::<Health>(e), Some(&Health(45)));
 }
+
+#[test]
+fn test_component_get_mut() {
+    let mut world = World::new();
+    let e = world.spawn();
+    world.insert(e, Health(50));
+    world.get_mut::<Health>(e).unwrap().0 += 25;
+    assert_eq!(world.get::<Health>(e), Some(&Health(75)));
+}
