@@ -125,3 +125,16 @@ fn test_jit_eager_matches_vm_interpreter() {
     assert_eq!(format!("{:?}", r_vm), format!("{:?}", r_jit));
     assert!(matches!(r_jit, VmResult::Done(v) if v.to_string() == "5050"));
 }
+
+#[test]
+fn test_jit_disabled_performs_no_compilation() {
+    let src = "nya sq(x: i64) -> i64 { return x * x; }
+return sq(2) + sq(3) + sq(4) + sq(5);";
+    let mut comp = ScriptComponent::from_source_with_policy("no_jit.fy", src, JitPolicy::Disabled).unwrap();
+    let mut host = FerriumHost::new(ScriptSnapshot::default());
+    let res = comp.step(&mut host).unwrap();
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "54"));
+    let tel = comp.jit_telemetry();
+    assert_eq!(tel.compiled_functions, 0);
+    assert_eq!(tel.native_calls, 0);
+}
