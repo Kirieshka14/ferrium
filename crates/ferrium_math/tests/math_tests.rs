@@ -39,3 +39,14 @@ fn test_vec2_clamp_length() {
     assert!((clamped.x - 3.0).abs() < 1e-5);
     assert_eq!(Vec2::new(1.0, 1.0).clamp_length(10.0), Vec2::new(1.0, 1.0));
 }
+
+#[test]
+fn test_vec3_arithmetic_and_swizzle() {
+    let v = Vec3::from_vec2(Vec2::new(1.0, 2.0), 3.0);
+    assert_eq!(v.xy(), Vec2::new(1.0, 2.0));
+    assert_eq!(v + Vec3::ONE, Vec3::new(2.0, 3.0, 4.0));
+    assert_eq!(v - Vec3::ONE, Vec3::new(0.0, 1.0, 2.0));
+    assert_eq!(v * 2.0, Vec3::new(2.0, 4.0, 6.0));
+    assert_eq!(v / 2.0, Vec3::new(0.5, 1.0, 1.5));
+    assert_eq!(-v, Vec3::new(-1.0, -2.0, -3.0));
+}
