@@ -155,3 +155,12 @@ fn test_is_baka_message_helper() {
     assert!(is_baka_message("[BAKA! >///<] bad value"));
     assert!(!is_baka_message("Unknown native host function 'foo'"));
 }
+
+#[test]
+fn test_purr_single_arg() {
+    let mut comp = ScriptComponent::from_source("purr1.fy", "purr(\"hello ferrium\");").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    comp.step(&mut host).unwrap();
+    assert_eq!(comp.purr_count, 1);
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(s) if s == "hello ferrium")));
+}
