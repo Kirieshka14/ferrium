@@ -109,3 +109,11 @@ fn test_shape_2d_polygon_vertices() {
         assert!((p.length() - 20.0).abs() < 1e-3);
     }
 }
+
+#[test]
+fn test_software_canvas_resize() {
+    let mut canvas = SoftwareCanvas::new(100, 80);
+    assert_eq!(canvas.pixels.len(), 8_000);
+    canvas.resize(200, 150);
+    assert_eq!(canvas.pixels.len(), 30_000);
+}
