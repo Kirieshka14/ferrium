@@ -223,3 +223,9 @@ fn test_infinite_loop_hits_step_budget() {
     assert!(matches!(err, ScriptError::Runtime { is_baka: false, .. }));
     assert_eq!(comp.status, "error");
 }
+
+#[test]
+fn test_immutability_compile_error() {
+    let err = compile_fusty_detailed("let x = 5; x = 10;").unwrap_err();
+    assert!(matches!(err, ScriptError::Compile { stage: CompileStage::Bytecode, .. }));
+}
