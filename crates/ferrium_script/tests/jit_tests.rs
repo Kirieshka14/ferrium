@@ -159,3 +159,13 @@ return a;";
         assert!(tel.native_calls >= 1);
     }
 }
+
+#[test]
+fn test_dynamic_set_jit_policy() {
+    let mut comp = ScriptComponent::from_source("dyn.fy", "return 1;").unwrap();
+    assert_eq!(comp.jit_policy, JitPolicy::Auto);
+    comp.set_jit_policy(JitPolicy::Eager);
+    assert_eq!(comp.jit_policy, JitPolicy::Eager);
+    comp.set_jit_policy(JitPolicy::Disabled);
+    assert_eq!(comp.jit_policy, JitPolicy::Disabled);
+}
