@@ -100,3 +100,12 @@ fn test_sprite2d_procedural_emblem() {
     assert_eq!(sprite.pixels.len(), 24 * 24);
     assert!(sprite.pixels.iter().any(|c| c.a > 0));
 }
+
+#[test]
+fn test_shape_2d_polygon_vertices() {
+    let hex = shape_2d_polygon(6, 20.0);
+    assert_eq!(hex.len(), 6);
+    for p in hex {
+        assert!((p.length() - 20.0).abs() < 1e-3);
+    }
+}
