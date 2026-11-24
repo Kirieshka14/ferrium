@@ -1,11 +1,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use ferrium_script::{
+    compile_fusty_detailed, is_baka_message, FunctionSummary, JitPolicy, JitTelemetry,
+    JitValueKind,
+};
 use fusty_bytecode::chunk::{Chunk, Constant};
-use fusty_bytecode::compiler::Compiler;
 use fusty_bytecode::opcode::Opcode;
-use fusty_lexer::Lexer;
-use fusty_parser::Parser;
 use fusty_vm::value::Value;
 use fusty_vm::vm::{Host, Vm, VmResult};
 
@@ -14,7 +15,8 @@ pub struct CompileReport {
     pub ok: bool,
     pub summary: String,
     pub error: Option<String>,
-    pub functions: Vec<(String, u8, usize, bool)>,
+    pub functions: Vec<FunctionSummary>,
+    pub jit_eligible_count: usize,
     pub disassembly: Vec<String>,
 }
 
@@ -156,7 +158,7 @@ impl CodeEditorState {
         fs::create_dir_all(dir).map_err(|e| format!("Failed to create dir: {}", e))?;
         let path = dir.join(format!("{}.fy", sanitized));
         let template = format!(
-            "// Ferrium FustyLang — {name}.fy\n\nlet speed = 4.0;\n\nfn update() {{\n    let axis = vec2(input_x(), input_y());\n    set_self_vel(axis * speed);\n}}\n\nwhile true {{\n    update();\n    wait 0.016;\n}}\n",
+            "// Ferrium FustyLang 0.2.1 — {name}.fy\n\nlet speed = 4.0;\n\nnya update() {{\n    let axis = vec2(input_x(), input_y());\n    set_self_vel(axis * speed);\n}}\n\npurr(\"{name}.fy ready!\");\n\nwhile true {{\n    update();\n    wait 0.016;\n}}\n",
             name = sanitized
         );
         fs::write(&path, &template).map_err(|e| format!("Write error: {}", e))?;
@@ -188,61 +190,53 @@ impl CodeEditorState {
 }
 
 pub fn analyze_source(source: &str) -> CompileReport {
-    let tokens = match Lexer::new(source).tokenize() {
-        Ok(t) => t,
-        Err((msg, span)) => {
-            return CompileReport {
-                ok: false,
-                summary: format!("Lexer error {}:{}", span.line, span.col),
-                error: Some(format!("Line {}:{}: {}", span.line, span.col, msg)),
-                ..Default::default()
+    match compile_fusty_detailed(source) {
+        Ok(artifact) => {
+            let jit_eligible_count = artifact.jit_eligible_count();
+            let disassembly = disassemble_chunk(&artifact.chunk);
+            let fn_summary = if artifact.functions.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    ", {} nya ({} JIT)",
+                    artifact.functions.len(),
+                    jit_eligible_count
+                )
             };
+            CompileReport {
+                ok: true,
+                summary: format!(
+                    "Fusty 0.2.1 OK ({}B, {} tok{})",
+                    artifact.chunk.code.len(),
+                    artifact.token_count,
+                    fn_summary
+                ),
+                error: None,
+                functions: artifact.functions,
+                jit_eligible_count,
+                disassembly,
+            }
         }
-    };
-    let tok_count = tokens.len();
-
-    let program = match Parser::new(tokens).parse_program() {
-        Ok(p) => p,
-        Err(e) => {
-            return CompileReport {
-                ok: false,
-                summary: format!("Parser error {}:{}", e.span.line, e.span.col),
-                error: Some(format!("Line {}:{}: {}", e.span.line, e.span.col, e.message)),
-                ..Default::default()
-            };
-        }
-    };
-
-    let chunk = match Compiler::new().compile_program(&program) {
-        Ok(c) => c,
-        Err(e) => {
-            return CompileReport {
-                ok: false,
-                summary: "Compile error".into(),
-                error: Some(e.message),
-                ..Default::default()
-            };
-        }
-    };
-
-    let functions = chunk
-        .functions
-        .iter()
-        .map(|f| (f.name.clone(), f.arity, f.entry_ip, f.is_meow))
-        .collect();
-    let disassembly = disassemble_chunk(&chunk);
-
-    CompileReport {
-        ok: true,
-        summary: format!(
-            "No errors ({}B bytecode, {} tok)",
-            chunk.code.len(),
-            tok_count
-        ),
-        error: None,
-        functions,
-        disassembly,
+        Err(err) => CompileReport {
+            ok: false,
+            summary: format!("Compile error{}", err.line().map(|l| format!(" L{}", l)).unwrap_or_default()),
+            error: Some(err.to_string()),
+            ..Default::default()
+        },
     }
+}
+
+pub fn format_function_badge(f: &FunctionSummary) -> String {
+    let jit_tag = match f.jit_kind {
+        Some(JitValueKind::Int64) => "JIT:i64",
+        Some(JitValueKind::Float64) => "JIT:f64",
+        None => "VM",
+    };
+    let meow_tag = if f.is_meow { "meow " } else { "" };
+    format!(
+        "{}nya {}(arity={}) @{}..{} [{}]",
+        meow_tag, f.name, f.arity, f.entry_ip, f.end_ip, jit_tag
+    )
 }
 
 pub fn disassemble_chunk(chunk: &Chunk) -> Vec<String> {
@@ -307,6 +301,12 @@ pub fn disassemble_chunk(chunk: &Chunk) -> Vec<String> {
                     addr, src_line, name, argc
                 ));
             }
+            Opcode::Uwu => {
+                lines.push(format!("{:04} [L{:>3}] Uwu (cuddle midpoint)", addr, src_line));
+            }
+            Opcode::Baka => {
+                lines.push(format!("{:04} [L{:>3}] Baka (tsundere panic)", addr, src_line));
+            }
             _ => {
                 lines.push(format!("{:04} [L{:>3}] {:?}", addr, src_line, op));
             }
@@ -352,6 +352,15 @@ impl Host for ReplHost {
                     .collect::<Vec<_>>()
                     .join(" ");
                 self.output.push(text);
+                Ok(Value::Nil)
+            }
+            "purr" => {
+                let text = args
+                    .iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                self.output.push(format!("[purr] {}", text));
                 Ok(Value::Nil)
             }
             "sin" => args
@@ -407,6 +416,8 @@ pub struct ReplState {
     pub output: Vec<String>,
     pub last_result: Option<String>,
     pub last_error: Option<String>,
+    pub jit_policy: JitPolicy,
+    pub last_jit: JitTelemetry,
 }
 
 impl Default for ReplState {
@@ -418,10 +429,12 @@ impl Default for ReplState {
 impl ReplState {
     pub fn new() -> Self {
         Self {
-            snippet: "let a = vec2(30.0, 40.0);\nlog(\"len =\", a.length());\nreturn a.normalized() * 100.0;".into(),
+            snippet: "let a = vec2(30.0, 40.0);\nlet b = vec2(90.0, 120.0);\npurr(\"mid =\", a uwu b);\nreturn a.normalized() * 100.0;".into(),
             output: Vec::new(),
             last_result: None,
             last_error: None,
+            jit_policy: JitPolicy::default(),
+            last_jit: JitTelemetry::default(),
         }
     }
 
@@ -429,6 +442,7 @@ impl ReplState {
         self.output.clear();
         self.last_result = None;
         self.last_error = None;
+        self.last_jit = JitTelemetry::default();
 
         let chunk = match ferrium_script::compile_fusty_source(&self.snippet) {
             Ok(c) => c,
@@ -438,13 +452,14 @@ impl ReplState {
             }
         };
 
-        let mut vm = Vm::new();
+        let mut vm = Vm::with_jit_mode(self.jit_policy.to_jit_mode());
         let mut host = ReplHost { output: Vec::new() };
         for _ in 0..16 {
             match vm.run_with_host(&chunk, &mut host) {
                 Ok(VmResult::Done(val)) => {
                     self.output = host.output;
                     self.last_result = Some(val.to_string());
+                    self.last_jit = JitTelemetry::from_stats(vm.jit_stats());
                     return;
                 }
                 Ok(VmResult::Waiting { duration_sec }) => {
@@ -453,16 +468,24 @@ impl ReplState {
                 Ok(VmResult::Yielded) => {
                     host.output.push("[yield]".into());
                     self.output = host.output;
+                    self.last_jit = JitTelemetry::from_stats(vm.jit_stats());
                     return;
                 }
                 Err(e) => {
                     self.output = host.output;
-                    self.last_error = Some(format!("VM line {}: {}", e.line, e.message));
+                    let prefix = if is_baka_message(&e.message) {
+                        "BAKA trap"
+                    } else {
+                        "VM error"
+                    };
+                    self.last_error = Some(format!("{} line {}: {}", prefix, e.line, e.message));
+                    self.last_jit = JitTelemetry::from_stats(vm.jit_stats());
                     return;
                 }
             }
         }
         self.output = host.output;
+        self.last_jit = JitTelemetry::from_stats(vm.jit_stats());
         self.last_error = Some("REPL wait limit reached".into());
     }
 }
@@ -473,15 +496,16 @@ mod tests {
 
     #[test]
     fn test_analyze_fusty_and_disassemble() {
-        let rep = analyze_source("fn helper(x: i32) -> i32 { return x * 2; }\nlet v = helper(21);");
+        let rep = analyze_source("nya helper(x: i32) -> i32 { return x * 2; }\nlet v = helper(21);");
         assert!(rep.ok, "{:?}", rep.error);
         assert_eq!(rep.functions.len(), 1);
+        assert_eq!(rep.jit_eligible_count, 1);
         assert!(!rep.disassembly.is_empty());
     }
 
     #[test]
     fn test_new_script_template_compiles_with_globals() {
-        let template = "let speed = 4.0;\nfn update() {\n    let axis = vec2(input_x(), input_y());\n    set_self_vel(axis * speed);\n}\nwhile true { update(); wait 0.016; }\n";
+        let template = "let speed = 4.0;\nnya update() {\n    let axis = vec2(input_x(), input_y());\n    set_self_vel(axis * speed);\n}\npurr(\"ready\");\nwhile true { update(); wait 0.016; }\n";
         let rep = analyze_source(template);
         assert!(rep.ok, "New script template failed: {:?}", rep.error);
     }
@@ -492,5 +516,6 @@ mod tests {
         repl.run_snippet();
         assert!(repl.last_error.is_none(), "{:?}", repl.last_error);
         assert_eq!(repl.last_result.as_deref(), Some("vec2(60.00, 80.00)"));
+        assert!(repl.output.iter().any(|l| l.contains("[purr]")));
     }
 }
