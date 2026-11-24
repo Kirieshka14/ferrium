@@ -42,3 +42,29 @@ fn test_jit_policy_display_and_enabled() {
     assert_eq!(format!("{}", JitPolicy::Eager), "JIT: Eager");
     assert_eq!(format!("{}", JitPolicy::Disabled), "JIT: Off (VM)");
 }
+
+#[test]
+fn test_jit_telemetry_accumulate() {
+    let mut tel = JitTelemetry::default();
+    let s1 = JitStats {
+        compiled_functions: 1,
+        native_calls: 8,
+        vm_fallbacks: 2,
+        compiled_bytes: 128,
+        compiled_names: vec!["fib".into()],
+    };
+    let s2 = JitStats {
+        compiled_functions: 1,
+        native_calls: 2,
+        vm_fallbacks: 0,
+        compiled_bytes: 64,
+        compiled_names: vec!["fib".into(), "step".into()],
+    };
+    tel.accumulate(&s1);
+    tel.accumulate(&s2);
+    assert_eq!(tel.compiled_functions, 2);
+    assert_eq!(tel.native_calls, 10);
+    assert_eq!(tel.vm_fallbacks, 2);
+    assert_eq!(tel.compiled_bytes, 192);
+    assert_eq!(tel.compiled_names, vec!["fib".to_string(), "step".to_string()]);
+}
