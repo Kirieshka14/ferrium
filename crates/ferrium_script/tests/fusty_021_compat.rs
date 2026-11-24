@@ -269,3 +269,9 @@ fn test_repo_boss_arena_example_compiles() {
     let art = compile_fusty_detailed(&src).unwrap();
     assert_eq!(art.functions.len(), 1);
 }
+
+#[test]
+fn test_repo_boss_fight_example_compiles() {
+    let src = std::fs::read_to_string("../../examples/boss_fight.fy").unwrap();
+    assert!(compile_fusty_source(&src).is_ok());
+}
