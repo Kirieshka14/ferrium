@@ -85,3 +85,11 @@ fn test_velocity_get_and_set() {
         ScriptCommand::SetVel(e, v) if e.id == 42 && (v.x - 6.0).abs() < 1e-4 && (v.y + 8.0).abs() < 1e-4
     )));
 }
+
+#[test]
+fn test_set_and_translate_self_2d() {
+    let (res, host) = run_expr("set_self_pos(vec2(1.0, 2.0)); return translate_self(vec2(3.0, 4.0));");
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "vec2(4.00, 6.00)"));
+    assert_eq!(host.snapshot.self_pos, Vec2::new(4.0, 6.0));
+    assert_eq!(host.commands.len(), 2);
+}
