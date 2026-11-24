@@ -169,3 +169,20 @@ fn test_spawn_despawn_stress_recycling() {
     }
     assert_eq!(world.entity_count(), 200);
 }
+
+#[test]
+fn test_storage_mut_bulk_update() {
+    let mut world = World::new();
+    let e1 = world.spawn();
+    let e2 = world.spawn();
+    world.insert(e1, Health(10));
+    world.insert(e2, Health(20));
+
+    if let Some(pool) = world.storage_mut::<Health>() {
+        for (_, hp) in pool.iter_mut() {
+            hp.0 *= 2;
+        }
+    }
+    assert_eq!(world.get::<Health>(e1), Some(&Health(20)));
+    assert_eq!(world.get::<Health>(e2), Some(&Health(40)));
+}
