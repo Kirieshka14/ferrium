@@ -106,3 +106,15 @@ fn test_sparse_set_iteration() {
     assert_eq!(set.len(), 4);
     assert_eq!(sum, 0 + 10 + 30 + 40);
 }
+
+#[test]
+fn test_sparse_set_remove_last() {
+    let mut set = SparseSet::new();
+    let e0 = Entity { id: 0, generation: 0 };
+    let e1 = Entity { id: 1, generation: 0 };
+    set.insert(e0, "a");
+    set.insert(e1, "b");
+    assert_eq!(set.remove(e1), Some("b"));
+    assert_eq!(set.get(e0), Some(&"a"));
+    assert_eq!(set.len(), 1);
+}
