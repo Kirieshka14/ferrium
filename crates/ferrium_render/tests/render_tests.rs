@@ -127,3 +127,21 @@ fn test_software_canvas_clear_color() {
     let expected = Color::SLATE.to_u32_rgb();
     assert!(canvas.pixels.iter().all(|&p| p == expected));
 }
+
+#[test]
+fn test_render_queue_clear_and_sprite_draw() {
+    let mut queue = RenderQueue::new();
+    let sprite = Arc::new(Sprite2D::procedural_emblem(16, Color::EMERALD, Color::WHITE));
+    queue.draw_sprite_2d(sprite, Vec2::ZERO, Vec2::new(32.0, 32.0), 0.0, 1.0);
+    queue.hud_text(4, 4, "OK", 1, Color::WHITE);
+
+    let mut canvas = SoftwareCanvas::new(128, 96);
+    let cam = Camera::new();
+    canvas.render_frame(&queue, &cam, Color::OBSIDIAN);
+    let bg = Color::OBSIDIAN.to_u32_rgb();
+    assert!(canvas.pixels.iter().any(|&p| p != bg));
+
+    queue.clear();
+    canvas.render_frame(&queue, &cam, Color::OBSIDIAN);
+    assert!(canvas.pixels.iter().all(|&p| p == bg));
+}
