@@ -1,7 +1,10 @@
 [package]
 name = "ferrium_render"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Hybrid 2D/3D software renderer, OBJ mesh loader, and orbit camera for Ferrium Engine"
 
 [dependencies]
 ferrium_math = { path = "../ferrium_math" }
