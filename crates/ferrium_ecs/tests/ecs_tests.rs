@@ -54,3 +54,14 @@ fn test_component_get_mut() {
     world.get_mut::<Health>(e).unwrap().0 += 25;
     assert_eq!(world.get::<Health>(e), Some(&Health(75)));
 }
+
+#[test]
+fn test_remove_single_component() {
+    let mut world = World::new();
+    let e = world.spawn();
+    world.insert(e, Position(3.0, 4.0));
+    world.insert(e, Velocity(1.0, -1.0));
+    assert_eq!(world.remove::<Velocity>(e), Some(Velocity(1.0, -1.0)));
+    assert!(world.get::<Velocity>(e).is_none());
+    assert_eq!(world.get::<Position>(e), Some(&Position(3.0, 4.0)));
+}
