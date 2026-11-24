@@ -25,3 +25,28 @@
 | [`ferrium_script`](crates/ferrium_script) | Native FustyLang 0.2.1 compiler, `ScriptComponent`, `FerriumHost` API bridge, `JitPolicy`, and `JitTelemetry` |
 | [`ferrium_engine`](crates/ferrium_engine) | Standalone playable runtime & deterministic headless verification CLI (`--headless-ticks`, `--jit-mode`, `--jit-stats`) |
 | [`ferrium_editor`](crates/ferrium_editor) | Visual `egui`/`eframe` studio editor with live viewport, inspector, code panel, and bytecode/JIT debugger |
+
+## Quick Start
+
+### Prerequisites
+- Rust stable toolchain (`rustc` / `cargo`)
+- On Linux: standard windowing dev libs (`libxkbcommon-dev`, `libxcb-*`, `libgtk-3-dev`)
+
+### Run Studio Editor or Standalone Engine
+
+```bash
+git clone https://github.com/Kirieshka14/ferrium.git
+cd ferrium
+
+# Launch Ferrium Studio Editor
+./run.sh editor
+
+# Launch standalone Boss Arena runtime
+./run.sh game
+
+# Run all workspace unit & integration tests
+./run.sh test
+
+# Run deterministic headless verification for Editor + Engine
+./run.sh headless
+```
