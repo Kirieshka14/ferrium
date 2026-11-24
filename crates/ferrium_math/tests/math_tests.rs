@@ -61,3 +61,14 @@ fn test_vec3_geometric_ops() {
     assert_eq!(Vec3::ZERO.lerp(Vec3::new(2.0, 4.0, 6.0), 0.5), Vec3::new(1.0, 2.0, 3.0));
     assert_eq!(Vec3::ZERO.normalized(), Vec3::ZERO);
 }
+
+#[test]
+fn test_mat4_identity_and_translation() {
+    let id = Mat4::default();
+    let v = Vec4::new(2.0, 3.0, 4.0, 1.0);
+    assert_eq!(id.mul_vec4(v), v);
+
+    let t = Mat4::translation(Vec3::new(5.0, -2.0, 1.0));
+    let moved = t.mul_vec4(v);
+    assert_eq!(moved, Vec4::new(7.0, 1.0, 5.0, 1.0));
+}
