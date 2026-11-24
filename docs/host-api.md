@@ -79,3 +79,8 @@ All native intrinsics are exposed to FustyLang 0.2.1 scripts through `FerriumHos
 | `is_meow()` | `() -> bool` | `true` inside a `meow` block or `meow nya` function |
 | `raw_teleport(pos)` | `(vec2) -> nil` | **Requires `meow`**: instant 2D teleport |
 | `raw_teleport3(pos)` | `(vec3) -> nil` | **Requires `meow`**: instant 3D teleport |
+| `gc_is_enabled()` | `() -> bool` | Whether automatic GC is enabled (default `true`) |
+| `gc_enable()` / `gc_disable()` | `() -> bool` | Enable or disable automatic GC at runtime |
+| `gc_collect()` | `() -> i64` | Run full mark-and-sweep GC and return freed object count |
+| `gc_step([budget])` | `([i64]) -> i64` | Run budgeted incremental GC step and return freed count |
+| `gc_live_objects()` / `gc_live_bytes()` / `gc_collections()` | `() -> i64` | Query GC heap telemetry |

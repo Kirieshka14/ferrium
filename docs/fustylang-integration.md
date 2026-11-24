@@ -58,6 +58,17 @@ Ferrium integrates `fusty_jit` directly into `ScriptComponent`:
 - **`JitPolicy::Eager`**: Compiles eligible `nya` functions immediately on first invocation.
 - **`JitPolicy::Disabled`**: Forces pure bytecode VM execution (useful for deterministic debugging or comparing JIT vs VM output).
 
-### Eligibility & Telemetry
+### Platforms, Eligibility & Diagnostics
+- **Supported Native JIT Targets**: Linux x86-64 (SysV ABI + `mmap`), Windows x86-64 (Win64 ABI + `VirtualAlloc`), and macOS x86-64 (SysV ABI + `mmap(MAP_JIT)`). Other targets automatically fall back to the bytecode VM.
+- **Silent Runtime Fallback with Diagnostics**: If a function cannot be JIT-compiled (e.g., calls host intrinsics, uses `baka!`, or receives mixed argument types), execution silently falls back to the VM without interrupting the script, while recording a structured `JitFallbackDiagnostic` (`function`, `kind`, `reason`, `count`) surfaced in `JitTelemetry`, `--jit-stats`, and the Ferrium Editor toolbar tooltip.
 - `compile_fusty_detailed` inspects every function in a `Chunk` using `check_jit_eligibility` and reports its `JitValueKind` in `FunctionSummary`.
-- `JitTelemetry` aggregates `compiled_functions`, `native_calls`, `vm_fallbacks`, `compiled_bytes`, `compiled_names`, and `native_hit_rate()` across all active script VMs.
+
+## Controllable Garbage Collector (Enabled by Default)
+
+FustyLang VMs ship with a mark-and-sweep `GcHeap` **enabled by default** alongside `FrameArena`, so scripts can allocate freely without manual memory management while still offering deterministic control for FPS-critical gameplay:
+
+- `gc_is_enabled()` — returns `true` by default
+- `gc_disable()` / `gc_enable()` — pause/resume automatic collection (e.g., during boss fights)
+- `gc_collect()` — run a full mark-and-sweep cycle (e.g., on level transitions)
+- `gc_step(budget)` — run a budgeted incremental GC step per frame
+- `gc_live_objects()`, `gc_live_bytes()`, `gc_collections()` — inspect live heap telemetry

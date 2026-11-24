@@ -52,6 +52,7 @@ fn test_jit_telemetry_accumulate() {
         vm_fallbacks: 2,
         compiled_bytes: 128,
         compiled_names: vec!["fib".into()],
+        fallback_diagnostics: vec![],
     };
     let s2 = JitStats {
         compiled_functions: 1,
@@ -59,6 +60,7 @@ fn test_jit_telemetry_accumulate() {
         vm_fallbacks: 0,
         compiled_bytes: 64,
         compiled_names: vec!["fib".into(), "step".into()],
+        fallback_diagnostics: vec![],
     };
     tel.accumulate(&s1);
     tel.accumulate(&s2);
@@ -80,6 +82,7 @@ fn test_jit_telemetry_hit_rate() {
         vm_fallbacks: 1,
         compiled_bytes: 64,
         compiled_names: vec!["calc".into()],
+        fallback_diagnostics: vec![],
     };
     let tel = JitTelemetry::from_stats(&stats);
     assert!((tel.native_hit_rate() - 0.75).abs() < 1e-6);
@@ -175,4 +178,55 @@ fn test_compile_artifact_function_summaries() {
     assert_eq!(artifact.functions[0].arity, 1);
     assert_eq!(artifact.functions[1].name, "beta");
     assert_eq!(artifact.functions[1].arity, 2);
+}
+
+#[test]
+fn test_silent_jit_fallback_records_diagnostics_in_telemetry() {
+    let src = r#"
+        nya with_host(x: i64) -> i64 {
+            purr("val", x);
+            return x + 1;
+        }
+        return with_host(5) + with_host(10);
+    "#;
+    let mut comp = ScriptComponent::from_source_with_jit("fb.fy", src, JitPolicy::Eager).unwrap();
+    let mut host = FerriumHost::new(ScriptSnapshot::default());
+    let res = comp.step(&mut host).expect("fallback must be silent at runtime");
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "17"));
+
+    let tel = comp.jit_telemetry();
+    assert_eq!(tel.compiled_functions, 0);
+    assert!(tel.vm_fallbacks >= 2);
+    assert_eq!(tel.fallback_diagnostics.len(), 1);
+    assert_eq!(tel.fallback_diagnostics[0].function, "with_host");
+    assert_eq!(tel.fallback_diagnostics[0].count, 2);
+}
+
+#[test]
+fn test_controllable_gc_enabled_by_default_and_script_controls() {
+    let src = r#"
+        let on_start = gc_is_enabled();
+        gc_disable();
+        let off_mid = gc_is_enabled();
+        gc_enable();
+        let freed = gc_collect();
+        let stepped = gc_step(32);
+        if on_start && !off_mid && gc_is_enabled() {
+            return gc_collections() + freed + stepped;
+        }
+        return -1;
+    "#;
+    let mut comp = ScriptComponent::from_source("gc.fy", src).unwrap();
+    assert!(comp.gc_is_enabled());
+    let mut host = FerriumHost::new(ScriptSnapshot::default());
+    let res = comp.step(&mut host).unwrap();
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "2"));
+    assert!(comp.gc_stats().enabled);
+    assert_eq!(comp.gc_stats().collections, 2);
+    assert!(comp.gc_stats().incremental_steps >= 1);
+
+    comp.set_gc_enabled(false);
+    assert!(!comp.gc_is_enabled());
+    comp.set_gc_enabled(true);
+    assert!(comp.gc_is_enabled());
 }
