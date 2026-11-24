@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_move_axis_opposing_keys_cancel_out() {
-        let mut input = InputState {
+        let input = InputState {
             left: true,
             right: true,
             up: true,
