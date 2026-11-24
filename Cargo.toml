@@ -1,0 +1,19 @@
+[workspace]
+members = [
+    "crates/ferrium_math",
+    "crates/ferrium_ecs",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/Kirieshka14/ferrium"
+
+[workspace.dependencies]
+fusty_lexer = { git = "https://github.com/Kirieshka14/fustylang.git", branch = "main" }
+fusty_parser = { git = "https://github.com/Kirieshka14/fustylang.git", branch = "main" }
+fusty_bytecode = { git = "https://github.com/Kirieshka14/fustylang.git", branch = "main" }
+fusty_jit = { git = "https://github.com/Kirieshka14/fustylang.git", branch = "main" }
+fusty_vm = { git = "https://github.com/Kirieshka14/fustylang.git", branch = "main" }
