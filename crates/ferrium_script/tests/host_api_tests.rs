@@ -261,3 +261,14 @@ fn test_unknown_host_function_error() {
     let err = comp.step(&mut host).unwrap_err();
     assert!(err.to_string().contains("nonexistent_engine_call"));
 }
+
+#[test]
+fn test_host_arity_and_type_validation() {
+    let mut bad_arity = ScriptComponent::from_source("arity.fy", "set_self_pos();").unwrap();
+    let mut host = FerriumHost::new(sample_snapshot());
+    assert!(bad_arity.step(&mut host).is_err());
+
+    let mut bad_type = ScriptComponent::from_source("type.fy", "set_self_pos(123);").unwrap();
+    let mut host2 = FerriumHost::new(sample_snapshot());
+    assert!(bad_type.step(&mut host2).is_err());
+}
