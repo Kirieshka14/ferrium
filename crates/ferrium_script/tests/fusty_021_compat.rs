@@ -172,3 +172,10 @@ fn test_purr_multi_arg() {
     comp.step(&mut host).unwrap();
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(s) if s == "hp = 80 true")));
 }
+
+#[test]
+fn test_purr_zero_args_error() {
+    let mut comp = ScriptComponent::from_source("purr0.fy", "purr();").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    assert!(comp.step(&mut host).is_err());
+}
