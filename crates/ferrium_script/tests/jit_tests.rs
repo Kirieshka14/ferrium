@@ -169,3 +169,18 @@ fn test_dynamic_set_jit_policy() {
     comp.set_jit_policy(JitPolicy::Disabled);
     assert_eq!(comp.jit_policy, JitPolicy::Disabled);
 }
+
+#[test]
+fn test_compile_artifact_function_summaries() {
+    let src = r#"
+        nya alpha(a: i64) -> i64 { return a + 1; }
+        nya beta(a: i64, b: i64) -> i64 { return a + b; }
+        return beta(alpha(2), 5);
+    "#;
+    let artifact = compile_fusty_detailed(src).unwrap();
+    assert_eq!(artifact.functions.len(), 2);
+    assert_eq!(artifact.functions[0].name, "alpha");
+    assert_eq!(artifact.functions[0].arity, 1);
+    assert_eq!(artifact.functions[1].name, "beta");
+    assert_eq!(artifact.functions[1].arity, 2);
+}
