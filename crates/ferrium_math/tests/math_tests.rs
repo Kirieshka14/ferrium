@@ -162,3 +162,12 @@ fn test_ray3_aabb_hit_and_miss() {
     let miss_ray = Ray3::new(Vec3::new(5.0, 0.0, 10.0), Vec3::new(0.0, 0.0, -1.0));
     assert!(miss_ray.intersect_aabb(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(1.0, 1.0, 1.0)).is_none());
 }
+
+#[test]
+fn test_ray3_rotated_obb_intersection() {
+    let ray = Ray3::new(Vec3::new(0.0, 0.0, 5.0), Vec3::new(0.0, 0.0, -1.0));
+    let t = ray
+        .intersect_obb(Vec3::ZERO, Vec3::new(1.0, 1.0, 1.0), Vec3::new(0.0, std::f32::consts::FRAC_PI_4, 0.0))
+        .expect("ray should hit rotated cube");
+    assert!(t > 3.5 && t < 3.7);
+}
