@@ -179,3 +179,14 @@ fn test_purr_zero_args_error() {
     let mut host = FerriumHost::new(base_snapshot());
     assert!(comp.step(&mut host).is_err());
 }
+
+#[test]
+fn test_nested_block_comments() {
+    let src = "/* outer /* inner */ still outer */\nreturn 7;";
+    let mut comp = ScriptComponent::from_source("nested.fy", src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    match comp.step(&mut host).unwrap() {
+        VmResult::Done(v) => assert_eq!(v.to_string(), "7"),
+        other => panic!("Unexpected {:?}", other),
+    }
+}
