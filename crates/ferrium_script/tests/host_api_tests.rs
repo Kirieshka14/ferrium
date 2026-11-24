@@ -179,3 +179,12 @@ fn test_jit_introspection_intrinsics() {
     let (res, _) = run_expr("if jit_enabled() { return jit_compiled_count(); } return -1;");
     assert!(matches!(res, VmResult::Done(v) if v.to_string() == "4"));
 }
+
+#[test]
+fn test_trig_intrinsics() {
+    let (res, _) = run_expr("return sin(0.0) + cos(0.0) + tan(0.0) + asin(0.0) + acos(1.0) + atan2(0.0, 1.0);");
+    match res {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 1.0).abs() < 1e-6),
+        other => panic!("unexpected {:?}", other),
+    }
+}
