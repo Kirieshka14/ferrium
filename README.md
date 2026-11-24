@@ -127,3 +127,20 @@ Launch the visual editor with `./run.sh editor` (or verify it headlessly via `ca
 | [`examples/shader_pulse.fy`](examples/shader_pulse.fy) | Procedural RGB pulsing using `smoothstep` and `set_self_color` |
 | [`examples/damage_pipeline.fy`](examples/damage_pipeline.fy) | Armor mitigation, `baka!` guard, `damage_self`, and `camera_shake` |
 | [`scripts/`](scripts/) | Reusable starter behaviors (`Player.fy`, `SmoothFollow.fy`, `OrbitCamera.fy`, `ColorPulse.fy`, `HealthRegen.fy`, `SpinModel.fy`) |
+
+## Documentation
+
+- [Architecture Guide](docs/architecture.md) — ECS, software renderer, and scripting pipeline
+- [FustyLang 0.2.1 Integration](docs/fustylang-integration.md) — Native VM, `fusty_jit`, `baka!` trapping, and `meow` gates
+- [Host API Reference](docs/host-api.md) — Complete catalog of native engine intrinsics
+- [Editor Guide](docs/editor-guide.md) — Studio IDE workflows, bytecode inspector, and JIT telemetry
+- [Migration Guide (0.1 → 0.2)](docs/migration-0.2.md) — Upgrading legacy scripts to FustyLang 0.2.1
+- [Engine Specification](SPEC.md) — Original design specification
+- [Changelog](CHANGELOG.md) — Release history
+
+## Roadmap
+
+- [ ] Audio mixer & spatial sound Host API
+- [ ] Tilemap & 2D physics broadphase
+- [ ] Multi-script entity messaging & shared blackboard resources
+- [ ] Optional `wgpu` hardware-accelerated render backend alongside `SoftwareCanvas`
