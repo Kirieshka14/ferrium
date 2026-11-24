@@ -235,3 +235,10 @@ fn test_lexer_error_line_and_col() {
     let err = compile_fusty_detailed("let s = \"unterminated").unwrap_err();
     assert!(matches!(err, ScriptError::Compile { stage: CompileStage::Lexer, line: 1, .. }));
 }
+
+#[test]
+fn test_repo_player_script_compiles() {
+    let src = std::fs::read_to_string("../../scripts/Player.fy").unwrap();
+    let art = compile_fusty_detailed(&src).unwrap();
+    assert_eq!(art.functions.len(), 2);
+}
