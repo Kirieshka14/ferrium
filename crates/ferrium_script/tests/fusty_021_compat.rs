@@ -229,3 +229,9 @@ fn test_immutability_compile_error() {
     let err = compile_fusty_detailed("let x = 5; x = 10;").unwrap_err();
     assert!(matches!(err, ScriptError::Compile { stage: CompileStage::Bytecode, .. }));
 }
+
+#[test]
+fn test_lexer_error_line_and_col() {
+    let err = compile_fusty_detailed("let s = \"unterminated").unwrap_err();
+    assert!(matches!(err, ScriptError::Compile { stage: CompileStage::Lexer, line: 1, .. }));
+}
