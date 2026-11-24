@@ -123,3 +123,10 @@ fn test_set_and_scale_self() {
         ScriptCommand::SetScale(_, s) if *s == Vec3::new(1.0, 1.5, 2.0)
     )));
 }
+
+#[test]
+fn test_set_self_color_rgb_and_rgba() {
+    let (_, host) = run_expr("set_self_color(300, -10, 128); set_self_color(10, 20, 30, 120);");
+    assert!(matches!(host.commands[0], ScriptCommand::SetColor(_, c) if c == Color::rgba(255, 0, 128, 255)));
+    assert!(matches!(host.commands[1], ScriptCommand::SetColor(_, c) if c == Color::rgba(10, 20, 30, 120)));
+}
