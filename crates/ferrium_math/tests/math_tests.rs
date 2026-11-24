@@ -118,3 +118,15 @@ fn test_rect_contains_point() {
     assert!(!r.contains_point(Vec2::new(9.9, 20.0)));
     assert!(!r.contains_point(Vec2::new(40.1, 60.0)));
 }
+
+#[test]
+fn test_color_helpers_and_lerp() {
+    let c = Color::rgb(0x12, 0x34, 0x56).with_alpha(128);
+    assert_eq!(c.a, 128);
+    assert_eq!(c.to_u32_rgb(), 0x0012_3456);
+
+    let mid = Color::BLACK.lerp(Color::rgb(100, 200, 50), 0.5);
+    assert_eq!(mid, Color::rgb(50, 100, 25));
+    assert_eq!(Color::BLACK.lerp(Color::WHITE, 2.0), Color::WHITE);
+    assert_eq!(Color::BLACK.lerp(Color::WHITE, -1.0), Color::BLACK);
+}
