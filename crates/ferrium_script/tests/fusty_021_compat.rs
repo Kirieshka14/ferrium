@@ -114,3 +114,11 @@ fn test_uwu_precedence() {
         other => panic!("Unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_uwu_type_mismatch_error() {
+    let mut comp = ScriptComponent::from_source("uwu_err.fy", "return 10 uwu vec2(1.0, 2.0);").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    let err = comp.step(&mut host).unwrap_err();
+    assert!(matches!(err, ScriptError::Runtime { .. }));
+}
