@@ -76,3 +76,12 @@ fn test_transform_3d_getters() {
     assert!(matches!(r3, VmResult::Done(v) if v.to_string() == "vec3(0.10, 0.20, 0.30)"));
     assert!(matches!(s3, VmResult::Done(v) if v.to_string() == "vec3(1.00, 2.00, 3.00)"));
 }
+
+#[test]
+fn test_velocity_get_and_set() {
+    let (_, host) = run_expr("let v = get_self_vel(); set_self_vel(v * 2.0);");
+    assert!(host.commands.iter().any(|c| matches!(
+        c,
+        ScriptCommand::SetVel(e, v) if e.id == 42 && (v.x - 6.0).abs() < 1e-4 && (v.y + 8.0).abs() < 1e-4
+    )));
+}
