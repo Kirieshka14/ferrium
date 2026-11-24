@@ -348,3 +348,12 @@ fn test_repo_orbit_camera_script_runs() {
     assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetPos3(_, _))));
 }
+
+#[test]
+fn test_repo_health_regen_script_runs() {
+    let src = std::fs::read_to_string("../../scripts/HealthRegen.fy").unwrap();
+    let mut comp = ScriptComponent::from_source("HealthRegen.fy", &src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Heal { amount: 5, .. })));
+}
