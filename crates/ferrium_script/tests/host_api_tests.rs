@@ -152,3 +152,10 @@ fn test_camera_shake_and_particles() {
     assert!(matches!(host.commands[0], ScriptCommand::CameraShake { intensity, duration } if (intensity - 8.5).abs() < 1e-4 && (duration - 0.4).abs() < 1e-4));
     assert!(matches!(host.commands[1], ScriptCommand::SpawnParticles { count: 64, color, .. } if color == Color::rgb(255, 128, 64)));
 }
+
+#[test]
+fn test_spawn_hitbox_knockback() {
+    let (_, host) = run_expr("spawn_hitbox(vec2(1.0, 0.0), vec2(20.0, 20.0), 15, 0.1); spawn_hitbox(vec2(2.0, 0.0), vec2(10.0, 10.0), 30, 0.001, 500.0);");
+    assert!(matches!(host.commands[0], ScriptCommand::SpawnHitbox { damage: 15, knockback, .. } if (knockback - 260.0).abs() < 1e-3));
+    assert!(matches!(host.commands[1], ScriptCommand::SpawnHitbox { damage: 30, duration, knockback, .. } if (duration - 0.02).abs() < 1e-4 && (knockback - 500.0).abs() < 1e-3));
+}
