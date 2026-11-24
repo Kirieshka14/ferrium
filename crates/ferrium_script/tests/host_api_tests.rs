@@ -173,3 +173,9 @@ fn test_time_input_and_frame_intrinsics() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_jit_introspection_intrinsics() {
+    let (res, _) = run_expr("if jit_enabled() { return jit_compiled_count(); } return -1;");
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "4"));
+}
