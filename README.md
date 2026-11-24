@@ -1,154 +1,145 @@
-# Ferrium Engine
+# Ferrium
 
-[![CI](https://github.com/Kirieshka14/ferrium/actions/workflows/ci.yml/badge.svg)](https://github.com/Kirieshka14/ferrium/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![FustyLang](https://img.shields.io/badge/FustyLang-0.2.1%20Native-ff69b4.svg)](https://github.com/Kirieshka14/fustylang)
+**Ferrium** is a lightweight 2D/3D Rust game engine and visual studio editor with **native [FustyLang 0.2.1](https://github.com/Kirieshka14/fustylang) scripting** and tiered x86-64 JIT execution.
 
-**Ferrium** is a modular 2D/3D Rust game engine and visual studio IDE built around **native [FustyLang 0.2.1](https://github.com/Kirieshka14/fustylang) scripting**, featuring a generational SparseSet ECS, a hybrid 2D/3D software renderer, and zero-overhead `fusty_jit` native machine code compilation.
+- Native FustyLang 0.2.1 (`nya`, `uwu`, `baka!`, `purr`, `meow`, coroutines) directly from `Kirieshka14/fustylang`
+- Tiered `fusty_jit` (`Auto`, `Eager`, `Disabled`) with live telemetry and safe `baka!` trap recovery
+- Generational `SparseSet` ECS and hybrid 2D/3D software renderer (`.obj` meshes, orbit camera, sprites)
+- Visual Studio IDE (`egui`) with syntax highlighting, live REPL, bytecode disassembler, and hot-reload
 
-## Highlights
+## Table of Contents
 
-- **Native FustyLang 0.2.1 Integration**: Direct Git dependency on `Kirieshka14/fustylang` (`fusty_lexer`, `fusty_parser`, `fusty_bytecode`, `fusty_vm`, `fusty_jit`) — zero forks, zero shims.
-- **Full 0.2.1 Language Support**: `nya` functions, `uwu` midpoint operator (scalars, `vec2`, `vec3`), `purr(...)` structured logging, nested block comments `/* /* */ */`, and safe `baka!(...)` trap catching & recovery.
-- **Native `fusty_jit` Execution**: Hot numeric `nya` functions compile to native machine code at runtime with configurable `Auto`, `Eager`, and `Disabled` policies and live telemetry.
-- **Safety-First Gameplay Scripting**: `meow { ... }` blocks explicitly gate raw engine teleportation intrinsics, while per-frame step budgets prevent infinite loops from freezing the engine.
-- **Hybrid 2D/3D Software Renderer**: Zero-GPU-driver-headache software rasterizer with 3D OBJ mesh loading, orbit camera, 2D sprites, and HUD text.
-- **Ferrium Studio IDE**: Live 2D/3D viewport, gizmo picking, FustyLang 0.2.1 syntax highlighter, live REPL, bytecode disassembler, per-function JIT eligibility badges, and hot-reload.
-
-## Workspace Architecture
-
-| Crate | Description |
-| --- | --- |
-| [`ferrium_math`](crates/ferrium_math) | `Vec2`, `Vec3`, `Vec4`, `Mat3`, `Mat4`, `Ray3`, `Rect`, `Transform`, and divide-free RGBA `Color` blending |
-| [`ferrium_ecs`](crates/ferrium_ecs) | Generational `Entity` allocator, `SparseSet<T>` component pools, singleton resources, and 5-stage `Schedule` |
-| [`ferrium_render`](crates/ferrium_render) | `SoftwareCanvas`, `RenderQueue`, `Camera` (2D / 2.5D / 3D orbit), Wavefront `.obj` `Mesh3D`, and `Sprite2D` |
-| [`ferrium_script`](crates/ferrium_script) | Native FustyLang 0.2.1 compiler, `ScriptComponent`, `FerriumHost` API bridge, `JitPolicy`, and `JitTelemetry` |
-| [`ferrium_engine`](crates/ferrium_engine) | Standalone playable runtime & deterministic headless verification CLI (`--headless-ticks`, `--jit-mode`, `--jit-stats`) |
-| [`ferrium_editor`](crates/ferrium_editor) | Visual `egui`/`eframe` studio editor with live viewport, inspector, code panel, and bytecode/JIT debugger |
+- [Quick Start](#quick-start)
+- [Scripting Tutorial](#scripting-tutorial)
+- [What's New](#whats-new)
+- [Architecture](#architecture)
+- [Docs](#docs)
+- [Roadmap](#roadmap)
+- [License](#license)
 
 ## Quick Start
 
-### Prerequisites
-- Rust stable toolchain (`rustc` / `cargo`)
-- On Linux: standard windowing dev libs (`libxkbcommon-dev`, `libxcb-*`, `libgtk-3-dev`)
-
-### Run Studio Editor or Standalone Engine
-
 ```bash
-git clone https://github.com/Kirieshka14/ferrium.git
-cd ferrium
-
 # Launch Ferrium Studio Editor
 ./run.sh editor
 
 # Launch standalone Boss Arena runtime
 ./run.sh game
 
-# Run all workspace unit & integration tests
-./run.sh test
+# Run headless verification with JIT stats
+cargo run -p ferrium_engine -- --headless-ticks 120 --jit-stats
 
-# Run deterministic headless verification for Editor + Engine
-./run.sh headless
+# Force eager JIT or pure VM interpreter
+cargo run -p ferrium_engine -- --script examples/jit_benchmark.fy --headless-ticks 20 --jit-mode eager --jit-stats
+cargo run -p ferrium_engine -- --headless-ticks 60 --no-jit --jit-stats
+
+# Run all workspace tests
+cargo test --workspace
 ```
 
-## FustyLang 0.2.1 Scripting Example
+## Scripting Tutorial
 
-```fusty
-/* Native FustyLang 0.2.1 script running inside Ferrium ECS */
+### Functions & JIT: `nya`
+
+Pure numeric `nya` functions are automatically eligible for native `fusty_jit` compilation.
+
+```rust
 nya mitigate(raw_dmg: i64, armor: i64) -> i64 {
     let reduced = raw_dmg - armor;
-    if reduced < 1 {
-        return 1;
-    }
+    if reduced < 1 { return 1; }
     return reduced;
 }
+```
 
-let target = get_player_pos();
-let current = get_self_pos();
+### Smooth midpoint: `uwu`
 
-// Smooth midpoint approach using the `uwu` operator
-set_self_pos(current uwu target);
+```rust
+let next_pos = get_self_pos() uwu get_player_pos();
+set_self_pos(next_pos);
+```
 
-// Safe runtime invariant guard (caught by Ferrium without crashing)
-let dmg = mitigate(35, 10);
+### Safe traps: `baka!`
+
+`baka!` halts only the current script tick without crashing the engine or editor.
+
+```rust
 if dmg <= 0 {
     baka!("damage must remain positive");
 }
+```
 
-// Explicit `meow` block required for raw teleportation
-if get_hp_ratio() < 0.5 {
-    meow {
-        raw_teleport(vec2(0.0, 0.0));
-    }
-    purr("Phase 2 blink executed!");
+### Safety-gated raw ops: `meow`
+
+Direct teleports require an explicit `meow` block (or `meow nya` function).
+
+```rust
+meow {
+    raw_teleport(vec2(0.0, 0.0));
 }
 ```
 
-## Native `fusty_jit` & Engine CLI
+### Coroutines & logging: `wait`, `yield`, `purr`
 
-`ferrium_engine` exposes full control over FustyLang's JIT compiler from the command line:
-
-```bash
-# Default Auto policy (compiles hot `nya` functions after 3 calls)
-cargo run -p ferrium_engine -- --headless-ticks 120 --jit-stats
-
-# Eager policy (compiles eligible `nya` functions on first call)
-cargo run -p ferrium_engine -- --headless-ticks 120 --jit-mode eager --jit-stats
-
-# Pure bytecode VM interpreter (JIT disabled)
-cargo run -p ferrium_engine -- --headless-ticks 120 --no-jit --jit-stats
-
-# Run a custom script
-cargo run -p ferrium_engine -- --script examples/jit_benchmark.fy --headless-ticks 30 --jit-stats
+```rust
+set_boss_state("windup");
+wait 0.25;
+purr("HP ratio =", get_hp_ratio());
+yield;
 ```
 
-## Ferrium Studio Editor
+### Common Host API
 
-Launch the visual editor with `./run.sh editor` (or verify it headlessly via `cargo run -p ferrium_editor -- --headless-check`):
+| Function | Description |
+| :--- | :--- |
+| `get_self_pos()` / `set_self_pos(v)` | 2D entity position (`get_self_pos3` / `set_self_pos3` for 3D) |
+| `rotate_self(v)` / `scale_self(f)` | 3D Euler rotation and uniform scaling |
+| `set_self_color(r, g, b[, a])` | Tint entity color (0..=255) |
+| `heal_self(n)` / `damage_self(n)` | Modify entity HP and emit combat commands |
+| `spawn_hitbox(...)` / `camera_shake(...)` | Spawn hitboxes and trigger screen shake |
+| `emit_event(name[, payload])` | Dispatch gameplay events |
+| `purr(...)` / `log(...)` | Structured logger / standard log |
+| `raw_teleport(v)` / `raw_teleport3(v)` | Instant teleport (requires `meow`) |
 
-- **2D / 3D Orbit Viewport**: Toggle between 2D/2.5D and 3D orbit projection, pick entities via `Ray3` OBB intersection, and manipulate transforms with gizmos.
-- **FustyLang 0.2.1 Code Panel**: Dedicated syntax highlighting for `nya`, `meow`, `uwu`, `purr`, `baka!`, and nested block comments, plus one-click starter script templates.
-- **Bytecode & JIT Inspector**: Live disassembly of compiled FustyLang bytecode (`Opcode::Uwu`, `Opcode::Baka`, etc.), per-function JIT eligibility badges, and a toolbar JIT policy switcher (`Auto` / `Eager` / `Off`) with live native call counters.
-- **Resilient Hot-Reload**: Editing a `.fy` script reloads automatically; syntax errors or `baka!` traps are surfaced cleanly without tearing down the scene.
+See [`docs/host-api.md`](docs/host-api.md) for the full list, and [`examples/`](examples) / [`scripts/`](scripts) for playable `.fy` scripts.
 
-## Bundled Examples & Starter Scripts
+## What's New
 
-| Script | Highlights |
-| --- | --- |
-| [`examples/boss_arena.fy`](examples/boss_arena.fy) | Multi-phase boss AI with `wait` coroutines, `spawn_hitbox`, and Phase 2 `meow` teleport |
-| [`examples/jit_benchmark.fy`](examples/jit_benchmark.fy) | Hot iterative `fib_iter(40)` loop showcasing native `fusty_jit` acceleration |
-| [`examples/jit_physics.fy`](examples/jit_physics.fy) | JIT-eligible numeric physics integrators |
-| [`examples/cuddle_tween.fy`](examples/cuddle_tween.fy) | Waypoint interpolation powered by the `uwu` operator |
-| [`examples/baka_guard.fy`](examples/baka_guard.fy) | Safe `baka!(...)` invariant guard and automatic VM recovery |
-| [`examples/event_bus.fy`](examples/event_bus.fy) | Low-HP detection triggering `emit_event` + `heal_self` |
-| [`examples/orbit_swarm.fy`](examples/orbit_swarm.fy) | 3D orbital transform choreography (`set_self_pos3`, `rotate_self`) |
-| [`examples/wave_spawner.fy`](examples/wave_spawner.fy) | Wave scaling with `nya` helpers and event dispatch |
-| [`examples/steering_ai.fy`](examples/steering_ai.fy) | Smooth velocity steering with `dir_to_player()` and `uwu` |
-| [`examples/shader_pulse.fy`](examples/shader_pulse.fy) | Procedural RGB pulsing using `smoothstep` and `set_self_color` |
-| [`examples/damage_pipeline.fy`](examples/damage_pipeline.fy) | Armor mitigation, `baka!` guard, `damage_self`, and `camera_shake` |
-| [`scripts/`](scripts/) | Reusable starter behaviors (`Player.fy`, `SmoothFollow.fy`, `OrbitCamera.fy`, `ColorPulse.fy`, `HealthRegen.fy`, `SpinModel.fy`) |
+### 0.2.0
 
-## Documentation
+- Native **FustyLang 0.2.1** integration via direct Git workspace dependencies (`fusty_lexer`, `fusty_parser`, `fusty_bytecode`, `fusty_jit`, `fusty_vm`).
+- Native `fusty_jit` policies (`Auto`, `Eager`, `Disabled`), CLI flags (`--jit`, `--no-jit`, `--jit-mode`, `--jit-stats`), and Editor toolbar telemetry.
+- Safe `baka!` trap recovery, `purr(...)`, 3D transform & event Host APIs, and updated 0.2.1 syntax highlighting.
+- 151 unit & integration tests across all 6 crates.
 
-- [Architecture Guide](docs/architecture.md) — ECS, software renderer, and scripting pipeline
-- [FustyLang 0.2.1 Integration](docs/fustylang-integration.md) — Native VM, `fusty_jit`, `baka!` trapping, and `meow` gates
-- [Host API Reference](docs/host-api.md) — Complete catalog of native engine intrinsics
-- [Editor Guide](docs/editor-guide.md) — Studio IDE workflows, bytecode inspector, and JIT telemetry
-- [Migration Guide (0.1 → 0.2)](docs/migration-0.2.md) — Upgrading legacy scripts to FustyLang 0.2.1
-- [Engine Specification](SPEC.md) — Original design specification
-- [Changelog](CHANGELOG.md) — Release history
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+## Architecture
+
+| Crate | Purpose |
+| :--- | :--- |
+| `crates/ferrium_math` | `Vec2`, `Vec3`, `Mat3`, `Mat4`, `Ray3`, `Rect`, `Transform`, divide-free RGBA `Color` |
+| `crates/ferrium_ecs` | Generational `Entity`, `SparseSet<T>` pools, resources, 5-stage `Schedule` |
+| `crates/ferrium_render` | Hybrid 2D/3D `SoftwareCanvas`, `Camera`, `.obj` `Mesh3D`, `Sprite2D`, `RenderQueue` |
+| `crates/ferrium_script` | FustyLang 0.2.1 compiler, `ScriptComponent`, `FerriumHost`, `JitPolicy`, `JitTelemetry` |
+| `crates/ferrium_engine` | Playable runtime & deterministic headless verification CLI |
+| `crates/ferrium_editor` | Visual `egui` studio IDE with viewport, syntax highlighter, REPL, and JIT inspector |
+
+## Docs
+
+- [Architecture](docs/architecture.md)
+- [FustyLang 0.2.1 Integration](docs/fustylang-integration.md)
+- [Host API Reference](docs/host-api.md)
+- [Editor Guide](docs/editor-guide.md)
+- [Migration Guide (0.1 → 0.2)](docs/migration-0.2.md)
+- [Specification](SPEC.md)
 
 ## Roadmap
 
 - [ ] Audio mixer & spatial sound Host API
 - [ ] Tilemap & 2D physics broadphase
 - [ ] Multi-script entity messaging & shared blackboard resources
-- [ ] Optional `wgpu` hardware-accelerated render backend alongside `SoftwareCanvas`
-
-## Contributing
-
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+- [ ] Optional `wgpu` hardware-accelerated render backend
 
 ## License
 
-Ferrium Engine is distributed under the [MIT License](LICENSE).
+[MIT](LICENSE)
