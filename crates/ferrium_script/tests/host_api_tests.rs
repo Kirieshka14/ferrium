@@ -206,3 +206,17 @@ fn test_rounding_and_sign_intrinsics() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_angle_and_interpolation_intrinsics() {
+    let (deg, _) = run_expr("return rad2deg(deg2rad(180.0));");
+    match deg {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 180.0).abs() < 1e-5),
+        other => panic!("unexpected {:?}", other),
+    }
+    let (interp, _) = run_expr("return lerp(10.0, 20.0, 0.25) + smoothstep(0.0, 10.0, 5.0);");
+    match interp {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 13.0).abs() < 1e-6),
+        other => panic!("unexpected {:?}", other),
+    }
+}
