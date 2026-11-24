@@ -93,3 +93,13 @@ fn test_set_and_translate_self_2d() {
     assert_eq!(host.snapshot.self_pos, Vec2::new(4.0, 6.0));
     assert_eq!(host.commands.len(), 2);
 }
+
+#[test]
+fn test_set_and_translate_self_3d() {
+    let (res, host) = run_expr("set_self_pos3(vec3(1.0, 2.0, 3.0)); return translate_self3(vec3(4.0, 5.0, 6.0));");
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "vec3(5.00, 7.00, 9.00)"));
+    assert!(host.commands.iter().any(|c| matches!(
+        c,
+        ScriptCommand::SetPos3(_, p) if *p == Vec3::new(5.0, 7.0, 9.0)
+    )));
+}
