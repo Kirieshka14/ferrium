@@ -13,3 +13,10 @@ fn test_jit_policy_default_and_mode() {
     assert_eq!(JitPolicy::Eager.to_jit_mode(), JitMode::Eager);
     assert_eq!(JitPolicy::Disabled.to_jit_mode(), JitMode::Disabled);
 }
+
+#[test]
+fn test_jit_policy_cycle() {
+    assert_eq!(JitPolicy::Auto.cycle(), JitPolicy::Eager);
+    assert_eq!(JitPolicy::Eager.cycle(), JitPolicy::Disabled);
+    assert_eq!(JitPolicy::Disabled.cycle(), JitPolicy::Auto);
+}
