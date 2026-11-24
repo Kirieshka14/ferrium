@@ -190,3 +190,16 @@ fn test_nested_block_comments() {
         other => panic!("Unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_coroutine_yield_and_resume() {
+    let src = "purr(\"step 1\");\nyield;\npurr(\"step 2\");";
+    let mut comp = ScriptComponent::from_source("yield.fy", src).unwrap();
+    let mut host1 = FerriumHost::new(base_snapshot());
+    assert_eq!(comp.step(&mut host1).unwrap(), VmResult::Yielded);
+    assert_eq!(comp.status, "yielded");
+
+    let mut host2 = FerriumHost::new(base_snapshot());
+    assert!(matches!(comp.step(&mut host2).unwrap(), VmResult::Done(_)));
+    assert_eq!(comp.purr_count, 2);
+}
