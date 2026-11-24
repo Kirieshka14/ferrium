@@ -110,6 +110,9 @@ fn run_headless(
             jit_stats.vm_fallbacks,
             jit_stats.compiled_bytes
         );
+        for diag in &jit_stats.fallback_diagnostics {
+            println!("    [JIT fallback diag]  : {}", diag);
+        }
     }
 
     if let Some(err) = script_err {

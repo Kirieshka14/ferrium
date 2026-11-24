@@ -684,6 +684,19 @@ impl FerriumStudioApp {
                 ui.add_space(6.0);
                 if let Some(rt) = &self.runtime {
                     let jt = rt.jit_telemetry();
+                    let mut tooltip = format!(
+                        "FustyJIT native telemetry:\nCompiled: {} nya fn ({} B)\nNative calls: {}\nVM fallbacks: {}",
+                        jt.compiled_functions,
+                        jt.compiled_bytes,
+                        jt.native_calls,
+                        jt.vm_fallbacks
+                    );
+                    if !jt.fallback_diagnostics.is_empty() {
+                        tooltip.push_str("\n\nSilent VM fallback diagnostics:");
+                        for diag in &jt.fallback_diagnostics {
+                            tooltip.push_str(&format!("\n• {}", diag));
+                        }
+                    }
                     ui.label(
                         egui::RichText::new(format!(
                             "JIT {}fn/{}c",
@@ -692,13 +705,7 @@ impl FerriumStudioApp {
                         .color(theme::OK_GREEN)
                         .size(11.5),
                     )
-                    .on_hover_text(format!(
-                        "FustyJIT native telemetry:\nCompiled: {} nya fn ({} B)\nNative calls: {}\nVM fallbacks: {}",
-                        jt.compiled_functions,
-                        jt.compiled_bytes,
-                        jt.native_calls,
-                        jt.vm_fallbacks
-                    ));
+                    .on_hover_text(tooltip);
                 }
                 if ui
                     .add(
