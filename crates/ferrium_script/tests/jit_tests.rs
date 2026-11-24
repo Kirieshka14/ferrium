@@ -85,3 +85,17 @@ fn test_jit_telemetry_hit_rate() {
     assert!((tel.native_hit_rate() - 0.75).abs() < 1e-6);
     assert_eq!(tel.platform_supported, is_supported_platform());
 }
+
+#[test]
+fn test_jit_eligibility_numeric_function() {
+    let artifact = compile_fusty_detailed(
+        "nya sum_to(n: i64) -> i64 { let mut acc = 0; let mut i = 1; while i <= n { acc = acc + i; i = i + 1; } return acc; }
+return sum_to(10);",
+    ).unwrap();
+    assert_eq!(artifact.functions.len(), 1);
+    let summary = &artifact.functions[0];
+    assert_eq!(summary.name, "sum_to");
+    assert_eq!(summary.arity, 1);
+    assert!(summary.jit_eligible);
+    assert!(check_jit_eligibility(&artifact.chunk, 0).is_ok());
+}
