@@ -18,3 +18,12 @@ fn test_empty_world_state() {
     assert_eq!(world.entity_count(), 0);
     assert!(!world.is_alive(Entity { id: 0, generation: 0 }));
 }
+
+#[test]
+fn test_double_despawn_is_idempotent() {
+    let mut world = World::new();
+    let e = world.spawn();
+    assert!(world.despawn(e));
+    assert!(!world.despawn(e));
+    assert_eq!(world.entity_count(), 0);
+}
