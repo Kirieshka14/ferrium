@@ -146,3 +146,8 @@ fn test_mat3_orthogonality_inverse() {
     let restored = rot.mul_vec3_transpose(rotated);
     assert!((restored - v).length() < 1e-4);
 }
+
+#[test]
+fn test_mat3_zero_euler_identity() {
+    assert_eq!(Mat3::from_euler_xyz(Vec3::ZERO), Mat3::IDENTITY);
+}
