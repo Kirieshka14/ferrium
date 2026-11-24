@@ -151,3 +151,14 @@ fn test_mat3_orthogonality_inverse() {
 fn test_mat3_zero_euler_identity() {
     assert_eq!(Mat3::from_euler_xyz(Vec3::ZERO), Mat3::IDENTITY);
 }
+
+#[test]
+fn test_ray3_aabb_hit_and_miss() {
+    let ray = Ray3::new(Vec3::new(0.0, 0.0, 10.0), Vec3::new(0.0, 0.0, -2.0));
+    assert_eq!(ray.point_at(2.0), Vec3::new(0.0, 0.0, 8.0));
+    let hit = ray.intersect_aabb(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(1.0, 1.0, 1.0));
+    assert!((hit.unwrap() - 9.0).abs() < 1e-4);
+
+    let miss_ray = Ray3::new(Vec3::new(5.0, 0.0, 10.0), Vec3::new(0.0, 0.0, -1.0));
+    assert!(miss_ray.intersect_aabb(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(1.0, 1.0, 1.0)).is_none());
+}
