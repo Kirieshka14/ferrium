@@ -339,3 +339,12 @@ fn test_repo_jit_benchmark_example_runs() {
     assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Done(_)));
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(s) if s.contains("102334155"))));
 }
+
+#[test]
+fn test_repo_orbit_camera_script_runs() {
+    let src = std::fs::read_to_string("../../scripts/OrbitCamera.fy").unwrap();
+    let mut comp = ScriptComponent::from_source("OrbitCamera.fy", &src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetPos3(_, _))));
+}
