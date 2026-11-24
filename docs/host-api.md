@@ -47,3 +47,19 @@ All native intrinsics are exposed to FustyLang 0.2.1 scripts through `FerriumHos
 | `camera_shake(intensity, duration)` | `(f64, f64) -> nil` | Triggers screen shake effect |
 | `spawn_particles(pos, count, r, g, b)` | `(vec2, i64, i64, i64, i64) -> nil` | Spawns `1..=64` colored particles |
 | `emit_event(name[, payload])` | `(string[, string]) -> nil` | Emits `ScriptCommand::EmitEvent` |
+
+## Scalar & Vector Math Intrinsics
+
+| Intrinsic | Signature | Description |
+| --- | --- | --- |
+| `sin(x)`, `cos(x)`, `tan(x)` | `(f64) -> f64` | Trigonometric functions (radians) |
+| `asin(x)`, `acos(x)` | `(f64) -> f64` | Clamped inverse sine / cosine |
+| `atan2(y, x)` | `(f64, f64) -> f64` | Four-quadrant arctangent |
+| `sqrt(x)`, `pow(base, exp)`, `abs(x)` | `(...) -> f64` | Square root (non-negative clamped), power, absolute value |
+| `floor(x)`, `ceil(x)`, `round(x)`, `fract(x)`, `sign(x)` | `(f64) -> f64` | Rounding, fractional part, and sign (`-1.0`/`0.0`/`1.0`) |
+| `min(a, b)`, `max(a, b)`, `clamp(x, lo, hi)` | `(...) -> f64` | Numeric bounds |
+| `deg2rad(deg)`, `rad2deg(rad)` | `(f64) -> f64` | Angle unit conversions |
+| `lerp(a, b, t)`, `smoothstep(e0, e1, x)` | `(f64, f64, f64) -> f64` | Linear and Hermite interpolation |
+| `distance2(a, b)`, `distance3(a, b)` | `(vec, vec) -> f64` | 2D / 3D Euclidean distance |
+| `dot2(a, b)`, `dot3(a, b)` | `(vec, vec) -> f64` | 2D / 3D dot product |
+| `lerp_vec2(a, b, t)`, `lerp_vec3(a, b, t)` | `(vec, vec, f64) -> vec` | Vector linear interpolation |
