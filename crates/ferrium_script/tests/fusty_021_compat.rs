@@ -308,3 +308,13 @@ fn test_repo_baka_guard_example_valid_and_trap() {
     let err = bad_comp.step(&mut bad_host).unwrap_err();
     assert!(err.is_baka());
 }
+
+#[test]
+fn test_repo_orbit_swarm_example_runs() {
+    let src = std::fs::read_to_string("../../examples/orbit_swarm.fy").unwrap();
+    let mut comp = ScriptComponent::from_source("orbit_swarm.fy", &src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetPos3(_, _))));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetRot(_, _))));
+}
