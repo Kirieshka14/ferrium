@@ -1,7 +1,10 @@
 [package]
 name = "ferrium_script"
-version = "0.2.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Native FustyLang 0.2.1 runtime, fusty_jit integration, and ECS Host API for Ferrium Engine"
 
 [dependencies]
 fusty_lexer = { workspace = true }
