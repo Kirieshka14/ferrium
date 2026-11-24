@@ -239,3 +239,17 @@ fn test_lerp_vec2_and_vec3() {
     assert!(matches!(v2, VmResult::Done(v) if v.to_string() == "vec2(10.00, 20.00)"));
     assert!(matches!(v3, VmResult::Done(v) if v.to_string() == "vec3(2.50, 5.00, 7.50)"));
 }
+
+#[test]
+fn test_raw_teleport3_meow_gate() {
+    let mut bad = ScriptComponent::from_source("bad3.fy", "raw_teleport3(vec3(1.0, 2.0, 3.0));").unwrap();
+    let mut host = FerriumHost::new(sample_snapshot());
+    assert!(bad.step(&mut host).is_err());
+
+    let (_, ok_host) = run_expr("meow { raw_teleport3(vec3(7.0, 8.0, 9.0)); }");
+    assert!(ok_host.used_meow);
+    assert!(ok_host.commands.iter().any(|c| matches!(
+        c,
+        ScriptCommand::RawTeleport3(_, p) if *p == Vec3::new(7.0, 8.0, 9.0)
+    )));
+}
