@@ -32,3 +32,20 @@ In Ferrium, `baka!` traps **never panic the Rust host process**:
 - `FerriumScript` inspects runtime errors via `is_baka_message(&str)` and classifies them as `ScriptError::Baka`.
 - `ScriptComponent` records the message in `last_baka`, increments `baka_count`, and marks the script status cleanly.
 - Calling `ScriptComponent::recover_from_baka()` resets the VM instruction pointer and stack while preserving `jit_policy` and hot-reload metadata.
+
+## `meow` Safety Gates
+
+High-privilege engine mutations that bypass normal physics integration are explicitly gated behind FustyLang's `meow` scope:
+
+```fusty
+// Outside meow -> returns a runtime safety violation
+// raw_teleport(vec2(10.0, 20.0));
+
+// Inside meow block or `meow nya` function -> allowed!
+meow {
+    raw_teleport(vec2(10.0, 20.0));
+    raw_teleport3(vec3(10.0, 2.0, 20.0));
+}
+```
+
+Scripts can also query `is_meow()` at runtime to check whether they are currently executing inside a `meow` scope.
