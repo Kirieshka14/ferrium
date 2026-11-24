@@ -32,3 +32,13 @@ fn test_jit_policy_parse() {
     assert_eq!(JitPolicy::parse("vm"), Some(JitPolicy::Disabled));
     assert_eq!(JitPolicy::parse("invalid"), None);
 }
+
+#[test]
+fn test_jit_policy_display_and_enabled() {
+    assert!(JitPolicy::Auto.is_enabled());
+    assert!(JitPolicy::Eager.is_enabled());
+    assert!(!JitPolicy::Disabled.is_enabled());
+    assert_eq!(format!("{}", JitPolicy::Auto), "JIT: Auto");
+    assert_eq!(format!("{}", JitPolicy::Eager), "JIT: Eager");
+    assert_eq!(format!("{}", JitPolicy::Disabled), "JIT: Off (VM)");
+}
