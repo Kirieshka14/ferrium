@@ -419,3 +419,14 @@ fn test_repo_wave_spawner_example_runs() {
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::EmitEvent { name, .. } if name == "spawn_wave")));
     assert_eq!(comp.purr_count, 1);
 }
+
+#[test]
+fn test_repo_steering_ai_example_runs() {
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/steering_ai.fy");
+    let src = std::fs::read_to_string(&path).unwrap();
+    let mut comp = ScriptComponent::from_source(&path, &src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    comp.step(&mut host).unwrap();
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetVel(_, _))));
+    assert_eq!(comp.purr_count, 1);
+}
