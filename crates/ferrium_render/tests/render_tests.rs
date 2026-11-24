@@ -91,3 +91,12 @@ fn test_repo_bundled_obj_models_load() {
     assert!(m1.triangles.len() >= 4);
     assert!(m2.triangles.len() >= 4);
 }
+
+#[test]
+fn test_sprite2d_procedural_emblem() {
+    let sprite = Sprite2D::procedural_emblem(24, Color::CYAN, Color::MAGENTA);
+    assert_eq!(sprite.width, 24);
+    assert_eq!(sprite.height, 24);
+    assert_eq!(sprite.pixels.len(), 24 * 24);
+    assert!(sprite.pixels.iter().any(|c| c.a > 0));
+}
