@@ -39,3 +39,13 @@ fn test_nya_function_declaration_and_return() {
         other => panic!("Unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_meow_nya_function_enables_meow_mode() {
+    let src = "meow nya blink() { raw_teleport(vec2(12.0, 34.0)); }\nblink();";
+    let mut comp = ScriptComponent::from_source("meow_nya.fy", src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    comp.step(&mut host).unwrap();
+    assert!(host.used_meow);
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::RawTeleport(_, p) if *p == Vec2::new(12.0, 34.0))));
+}
