@@ -75,3 +75,16 @@ fn test_uwu_operator_floats() {
         other => panic!("Unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_uwu_operator_vec2() {
+    let mut comp = ScriptComponent::from_source(
+        "uwu_v2.fy",
+        "return vec2(10.0, 20.0) uwu vec2(30.0, 60.0);",
+    ).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    match comp.step(&mut host).unwrap() {
+        VmResult::Done(v) => assert_eq!(v.to_string(), "vec2(20.00, 40.00)"),
+        other => panic!("Unexpected {:?}", other),
+    }
+}
