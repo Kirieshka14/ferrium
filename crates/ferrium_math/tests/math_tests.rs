@@ -86,3 +86,12 @@ fn test_mat4_scale_and_rotations() {
     let ryv = ry.mul_vec4(Vec4::new(1.0, 0.0, 0.0, 1.0));
     assert!((ryv.x + 1.0).abs() < 1e-5 && ryv.z.abs() < 1e-5);
 }
+
+#[test]
+fn test_mat4_orthographic_projection() {
+    let ortho = Mat4::orthographic(-10.0, 10.0, -5.0, 5.0, -1.0, 1.0);
+    let center = ortho.project_point(Vec3::ZERO).unwrap();
+    assert!(center.x.abs() < 1e-5 && center.y.abs() < 1e-5);
+    let right = ortho.project_point(Vec3::new(10.0, 5.0, 0.0)).unwrap();
+    assert!((right.x - 1.0).abs() < 1e-5 && (right.y - 1.0).abs() < 1e-5);
+}
