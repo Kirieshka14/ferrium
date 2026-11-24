@@ -43,3 +43,12 @@ fn test_entity_and_health_queries() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_hp_ratio_and_is_alive() {
+    let (res, _) = run_expr("if is_alive() { return get_hp_ratio(); } return -1.0;");
+    match res {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 0.6).abs() < 1e-6),
+        other => panic!("unexpected {:?}", other),
+    }
+}
