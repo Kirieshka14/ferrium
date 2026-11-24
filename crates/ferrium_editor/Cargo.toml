@@ -1,0 +1,19 @@
+[package]
+name = "ferrium_editor"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+ferrium_math = { path = "../ferrium_math" }
+ferrium_ecs = { path = "../ferrium_ecs" }
+ferrium_render = { path = "../ferrium_render" }
+ferrium_script = { path = "../ferrium_script" }
+fusty_lexer = { workspace = true }
+fusty_parser = { workspace = true }
+fusty_bytecode = { workspace = true }
+fusty_jit = { workspace = true }
+fusty_vm = { workspace = true }
+eframe = { version = "0.36", default-features = false, features = ["default_fonts", "glow", "wayland", "x11"] }
+egui = "0.36"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
