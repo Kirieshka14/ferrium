@@ -8,7 +8,9 @@ use ferrium_math::{Color, Transform, Vec2, Vec3};
 use ferrium_render::{
     shape_2d_polygon, Camera, Mesh3D, RenderBackend, RenderQueue, SoftwareCanvas, Sprite2D,
 };
-use ferrium_script::{FerriumHost, ScriptCommand, ScriptComponent, ScriptSnapshot, VmResult};
+use ferrium_script::{
+    FerriumHost, JitPolicy, JitTelemetry, ScriptCommand, ScriptComponent, ScriptSnapshot, VmResult,
+};
 
 use crate::scene::{EntityKind, MeshKind, SceneEntityDef, SceneFile, TeamDef};
 
@@ -221,7 +223,9 @@ pub struct EditorRuntime {
     pub world: World,
     pub camera: Camera,
     pub queue: RenderQueue,
+    pub jit_policy: JitPolicy,
     pub elapsed: f64,
+    pub tick_count: u64,
     pub frame_arena_resets: u64,
     pub player_entity: Option<Entity>,
     pub light_dir: Vec3,
@@ -232,6 +236,16 @@ impl EditorRuntime {
         scene: &SceneFile,
         project_root: &Path,
         camera_template: &Camera,
+        logs: &mut Vec<ConsoleEntry>,
+    ) -> Self {
+        Self::from_scene_with_jit(scene, project_root, camera_template, JitPolicy::default(), logs)
+    }
+
+    pub fn from_scene_with_jit(
+        scene: &SceneFile,
+        project_root: &Path,
+        camera_template: &Camera,
+        jit_policy: JitPolicy,
         logs: &mut Vec<ConsoleEntry>,
     ) -> Self {
         let mut world = World::new();
@@ -315,12 +329,17 @@ impl EditorRuntime {
                         } else {
                             project_root.join(p)
                         };
-                        match ScriptComponent::from_file(&resolved) {
+                        match ScriptComponent::from_file_with_jit(&resolved, jit_policy) {
                             Ok(comp) => {
                                 logs.push(ConsoleEntry {
                                     timestamp: format_clock(0.0),
                                     level: ConsoleLevel::Info,
-                                    text: format!("Loaded '{}' on {}", sc.path, def.name),
+                                    text: format!(
+                                        "Loaded '{}' on {} ({})",
+                                        sc.path,
+                                        def.name,
+                                        jit_policy.label()
+                                    ),
                                 });
                                 world.insert(e, comp);
                             }
@@ -344,11 +363,32 @@ impl EditorRuntime {
             world,
             camera,
             queue: RenderQueue::new(),
+            jit_policy,
             elapsed: 0.0,
+            tick_count: 0,
             frame_arena_resets: 0,
             player_entity,
             light_dir,
         }
+    }
+
+    pub fn set_jit_policy(&mut self, policy: JitPolicy) {
+        self.jit_policy = policy;
+        for e in self.world.entities_with::<ScriptComponent>() {
+            if let Some(sc) = self.world.get_mut::<ScriptComponent>(e) {
+                sc.set_jit_policy(policy);
+            }
+        }
+    }
+
+    pub fn jit_telemetry(&self) -> JitTelemetry {
+        let mut telemetry = JitTelemetry::default();
+        for e in self.world.entities_with::<ScriptComponent>() {
+            if let Some(sc) = self.world.get::<ScriptComponent>(e) {
+                telemetry.accumulate(sc.vm.jit_stats());
+            }
+        }
+        telemetry
     }
 
     pub fn force_reload_all(&mut self, logs: &mut Vec<ConsoleEntry>) {
@@ -391,6 +431,7 @@ impl EditorRuntime {
     pub fn step(&mut self, dt: f32, input: &RuntimeInput, logs: &mut Vec<ConsoleEntry>) {
         let dt = dt.clamp(0.001, 0.05);
         self.elapsed += dt as f64;
+        self.tick_count += 1;
         self.camera.update(dt, self.elapsed as f32);
 
         self.update_scripts(dt, input, logs);
@@ -491,19 +532,19 @@ impl EditorRuntime {
                         input_y: iy,
                         dt: dt as f64,
                         elapsed_time: self.elapsed,
+                        frame_count: self.tick_count,
+                        jit_enabled: script.jit_policy.is_enabled(),
+                        jit_compiled_count: script.vm.jit_stats().compiled_functions,
                     };
                     let mut host = FerriumHost::new(snapshot);
-                    match script.vm.run_with_host(&script.chunk, &mut host) {
+                    match script.step(&mut host) {
                         Ok(VmResult::Waiting { duration_sec }) => {
-                            script.wait_remaining = duration_sec;
                             script.status = format!("wait {:.2}s", duration_sec);
                         }
                         Ok(VmResult::Yielded) => script.status = "yield".into(),
                         Ok(VmResult::Done(_)) => script.status = "done".into(),
-                        Err(e) => {
-                            let msg = format!("[{}] VM line {}: {}", name, e.line, e.message);
-                            script.last_error = Some(msg.clone());
-                            script.status = "error".into();
+                        Err(err) => {
+                            let msg = format!("[{}] {}", name, err);
                             logs.push(ConsoleEntry {
                                 timestamp: format_clock(self.elapsed),
                                 level: ConsoleLevel::Error,
@@ -579,11 +620,40 @@ impl EditorRuntime {
                         );
                     }
                 }
+                ScriptCommand::Heal { entity, amount } => {
+                    if let Some(h) = self.world.get_mut::<HealthComp>(entity) {
+                        h.current = (h.current + amount).min(h.max);
+                    }
+                }
+                ScriptCommand::Damage { entity, amount } => {
+                    if let Some(h) = self.world.get_mut::<HealthComp>(entity) {
+                        h.current = (h.current - amount).max(0);
+                    }
+                }
+                ScriptCommand::EmitEvent { name, payload, .. } => {
+                    let text = if payload.is_empty() {
+                        format!("[EVENT] {}", name)
+                    } else {
+                        format!("[EVENT] {}: {}", name, payload)
+                    };
+                    logs.push(ConsoleEntry {
+                        timestamp: format_clock(self.elapsed),
+                        level: ConsoleLevel::Info,
+                        text,
+                    });
+                }
                 ScriptCommand::Log(msg) => {
                     logs.push(ConsoleEntry {
                         timestamp: format_clock(self.elapsed),
                         level: ConsoleLevel::Script,
                         text: msg,
+                    });
+                }
+                ScriptCommand::Purr(msg) => {
+                    logs.push(ConsoleEntry {
+                        timestamp: format_clock(self.elapsed),
+                        level: ConsoleLevel::Script,
+                        text: format!("[purr] {}", msg),
                     });
                 }
                 ScriptCommand::SpawnHitbox { .. } => {}
