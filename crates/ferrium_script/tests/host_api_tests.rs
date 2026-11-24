@@ -103,3 +103,13 @@ fn test_set_and_translate_self_3d() {
         ScriptCommand::SetPos3(_, p) if *p == Vec3::new(5.0, 7.0, 9.0)
     )));
 }
+
+#[test]
+fn test_set_and_rotate_self() {
+    let (res, host) = run_expr("set_self_rot(vec3(0.0, 1.0, 0.0)); return rotate_self(vec3(0.5, 0.5, 0.0));");
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "vec3(0.50, 1.50, 0.00)"));
+    assert!(host.commands.iter().any(|c| matches!(
+        c,
+        ScriptCommand::SetRot(_, r) if (r.x - 0.5).abs() < 1e-4 && (r.y - 1.5).abs() < 1e-4
+    )));
+}
