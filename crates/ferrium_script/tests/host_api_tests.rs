@@ -231,3 +231,11 @@ fn test_vector_distance_and_dot_intrinsics() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_lerp_vec2_and_vec3() {
+    let (v2, _) = run_expr("return lerp_vec2(vec2(0.0, 10.0), vec2(20.0, 30.0), 0.5);");
+    let (v3, _) = run_expr("return lerp_vec3(vec3(0.0, 0.0, 0.0), vec3(10.0, 20.0, 30.0), 0.25);");
+    assert!(matches!(v2, VmResult::Done(v) if v.to_string() == "vec2(10.00, 20.00)"));
+    assert!(matches!(v3, VmResult::Done(v) if v.to_string() == "vec3(2.50, 5.00, 7.50)"));
+}
