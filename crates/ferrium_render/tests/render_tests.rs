@@ -70,3 +70,13 @@ f -3/1/1 -2/2/1 -1/3/1
     let mesh = Mesh3D::from_obj_str("Tri", obj).unwrap();
     assert_eq!(mesh.triangles.len(), 1);
 }
+
+#[test]
+fn test_mesh3d_obj_error_cases() {
+    assert!(Mesh3D::from_obj_str("Empty", "# comment only").is_err());
+    assert!(Mesh3D::from_obj_str("OOB", "v 0 0 0
+v 1 0 0
+v 0 1 0
+f 1 2 99
+").is_err());
+}
