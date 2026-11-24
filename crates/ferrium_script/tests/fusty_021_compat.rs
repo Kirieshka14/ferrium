@@ -49,3 +49,9 @@ fn test_meow_nya_function_enables_meow_mode() {
     assert!(host.used_meow);
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::RawTeleport(_, p) if *p == Vec2::new(12.0, 34.0))));
 }
+
+#[test]
+fn test_legacy_fn_keyword_rejected() {
+    let err = compile_fusty_detailed("fn old_style() { return 1; }").unwrap_err();
+    assert!(matches!(err, ScriptError::Compile { stage: CompileStage::Parser, .. }));
+}
