@@ -29,3 +29,12 @@ fn test_camera_shake_decay_and_reset() {
     assert_eq!(cam.shake_offset, Vec2::ZERO);
     assert_eq!(cam.shake_intensity, 0.0);
 }
+
+#[test]
+fn test_camera_orbit_eye_distance() {
+    let mut cam = Camera::new();
+    cam.orbit_target = Vec3::new(1.0, 2.0, 3.0);
+    cam.orbit_distance = 5.0;
+    let eye = cam.orbit_eye();
+    assert!((eye.distance(cam.orbit_target) - 5.0).abs() < 1e-4);
+}
