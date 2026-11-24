@@ -83,3 +83,21 @@ if get_hp_ratio() < 0.5 {
     purr("Phase 2 blink executed!");
 }
 ```
+
+## Native `fusty_jit` & Engine CLI
+
+`ferrium_engine` exposes full control over FustyLang's JIT compiler from the command line:
+
+```bash
+# Default Auto policy (compiles hot `nya` functions after 3 calls)
+cargo run -p ferrium_engine -- --headless-ticks 120 --jit-stats
+
+# Eager policy (compiles eligible `nya` functions on first call)
+cargo run -p ferrium_engine -- --headless-ticks 120 --jit-mode eager --jit-stats
+
+# Pure bytecode VM interpreter (JIT disabled)
+cargo run -p ferrium_engine -- --headless-ticks 120 --no-jit --jit-stats
+
+# Run a custom script
+cargo run -p ferrium_engine -- --script examples/jit_benchmark.fy --headless-ticks 30 --jit-stats
+```
