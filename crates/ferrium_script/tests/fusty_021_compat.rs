@@ -255,3 +255,10 @@ fn test_repo_spin_model_script_compiles() {
     let art = compile_fusty_detailed(&src).unwrap();
     assert_eq!(art.functions.len(), 1);
 }
+
+#[test]
+fn test_repo_patrol_agent_script_compiles() {
+    let src = std::fs::read_to_string("../../scripts/patrol_agent.fy").unwrap();
+    let art = compile_fusty_detailed(&src).unwrap();
+    assert_eq!(art.functions.len(), 1);
+}
