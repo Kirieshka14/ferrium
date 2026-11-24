@@ -78,3 +78,18 @@ fn test_despawn_cleans_all_pools() {
     assert_eq!(world.storage::<Velocity>().map(|s| s.len()), Some(0));
     assert_eq!(world.storage::<Health>().map(|s| s.len()), Some(0));
 }
+
+#[test]
+fn test_stale_generation_isolation() {
+    let mut world = World::new();
+    let old = world.spawn();
+    world.insert(old, Health(10));
+    world.despawn(old);
+
+    let fresh = world.spawn();
+    assert_eq!(fresh.id, old.id);
+    assert_ne!(fresh.generation, old.generation);
+    world.insert(fresh, Health(999));
+    assert!(world.get::<Health>(old).is_none());
+    assert_eq!(world.get::<Health>(fresh), Some(&Health(999)));
+}
