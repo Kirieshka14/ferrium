@@ -86,6 +86,36 @@ impl ScriptComponent {
         JitTelemetry::from_stats(self.vm.jit_stats())
     }
 
+    /// Returns whether the controllable FustyLang GC is enabled (enabled by default).
+    #[inline]
+    pub fn gc_is_enabled(&self) -> bool {
+        self.vm.gc_is_enabled()
+    }
+
+    /// Enables or disables automatic GC for this script VM.
+    #[inline]
+    pub fn set_gc_enabled(&mut self, enabled: bool) {
+        self.vm.set_gc_enabled(enabled);
+    }
+
+    /// Runs a full mark-and-sweep GC cycle and returns the number of freed objects.
+    #[inline]
+    pub fn gc_collect(&mut self) -> usize {
+        self.vm.gc_collect()
+    }
+
+    /// Runs a budgeted incremental GC step and returns the number of freed objects.
+    #[inline]
+    pub fn gc_step(&mut self, budget: usize) -> usize {
+        self.vm.gc_step(budget)
+    }
+
+    /// Returns a snapshot of this script VM's GC telemetry.
+    #[inline]
+    pub fn gc_stats(&self) -> fusty_vm::gc::GcStats {
+        self.vm.gc_stats()
+    }
+
     /// Advances the FustyLang VM one step with safe `baka!(...)` interception and telemetry updates.
     pub fn step(&mut self, host: &mut FerriumHost) -> Result<VmResult, ScriptError> {
         let result = self.vm.run_with_host(&self.chunk, host);

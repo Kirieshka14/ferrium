@@ -846,7 +846,7 @@ checksum = "aa9a19cbb55df58761df49b23516a86d432839add4af60fc256da840f66ed35b"
 [[package]]
 name = "fusty_bytecode"
 version = "0.2.1"
-source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#0bb9eebc3d06bdc990aae59e655b078dd58d0729"
+source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#9305c9cbfbe288a9d5ca51e7d564f70ac1869df1"
 dependencies = [
  "fusty_lexer",
  "fusty_parser",
@@ -855,7 +855,7 @@ dependencies = [
 [[package]]
 name = "fusty_jit"
 version = "0.2.1"
-source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#0bb9eebc3d06bdc990aae59e655b078dd58d0729"
+source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#9305c9cbfbe288a9d5ca51e7d564f70ac1869df1"
 dependencies = [
  "fusty_bytecode",
 ]
@@ -863,12 +863,12 @@ dependencies = [
 [[package]]
 name = "fusty_lexer"
 version = "0.2.1"
-source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#0bb9eebc3d06bdc990aae59e655b078dd58d0729"
+source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#9305c9cbfbe288a9d5ca51e7d564f70ac1869df1"
 
 [[package]]
 name = "fusty_parser"
 version = "0.2.1"
-source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#0bb9eebc3d06bdc990aae59e655b078dd58d0729"
+source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#9305c9cbfbe288a9d5ca51e7d564f70ac1869df1"
 dependencies = [
  "fusty_lexer",
 ]
@@ -876,7 +876,7 @@ dependencies = [
 [[package]]
 name = "fusty_vm"
 version = "0.2.1"
-source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#0bb9eebc3d06bdc990aae59e655b078dd58d0729"
+source = "git+https://github.com/Kirieshka14/fustylang.git?branch=main#9305c9cbfbe288a9d5ca51e7d564f70ac1869df1"
 dependencies = [
  "fusty_bytecode",
  "fusty_jit",

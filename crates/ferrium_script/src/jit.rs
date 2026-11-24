@@ -1,7 +1,9 @@
 use std::fmt;
 
 use fusty_bytecode::chunk::Chunk;
-pub use fusty_jit::{is_supported_platform, JitMode, JitStats, JitValueKind};
+pub use fusty_jit::{
+    is_supported_platform, JitFallbackDiagnostic, JitMode, JitStats, JitValueKind,
+};
 
 /// High-level JIT policy exposed in Ferrium Engine CLI, Editor UI, and `ScriptComponent`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -73,7 +75,7 @@ impl fmt::Display for JitPolicy {
     }
 }
 
-/// Aggregated JIT runtime telemetry across one or more Ferrium script VMs.
+/// Aggregated JIT runtime telemetry and silent fallback diagnostics across Ferrium script VMs.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct JitTelemetry {
     pub compiled_functions: usize,
@@ -81,6 +83,7 @@ pub struct JitTelemetry {
     pub vm_fallbacks: usize,
     pub compiled_bytes: usize,
     pub compiled_names: Vec<String>,
+    pub fallback_diagnostics: Vec<JitFallbackDiagnostic>,
     pub platform_supported: bool,
 }
 
@@ -92,6 +95,7 @@ impl JitTelemetry {
             vm_fallbacks: stats.vm_fallbacks,
             compiled_bytes: stats.compiled_bytes,
             compiled_names: stats.compiled_names.clone(),
+            fallback_diagnostics: stats.fallback_diagnostics.clone(),
             platform_supported: is_supported_platform(),
         }
     }
@@ -106,6 +110,15 @@ impl JitTelemetry {
         for name in &stats.compiled_names {
             if !self.compiled_names.contains(name) {
                 self.compiled_names.push(name.clone());
+            }
+        }
+        for diag in &stats.fallback_diagnostics {
+            if let Some(existing) = self.fallback_diagnostics.iter_mut().find(|d| {
+                d.function == diag.function && d.kind == diag.kind && d.reason == diag.reason
+            }) {
+                existing.count += diag.count;
+            } else {
+                self.fallback_diagnostics.push(diag.clone());
             }
         }
     }

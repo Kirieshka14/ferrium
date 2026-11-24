@@ -9,9 +9,10 @@ pub use component::ScriptComponent;
 pub use error::{is_baka_message, CompileStage, ScriptError};
 pub use host::{FerriumHost, ScriptCommand, ScriptSnapshot};
 pub use jit::{
-    check_jit_eligibility, is_supported_platform, JitMode, JitPolicy, JitStats, JitTelemetry,
-    JitValueKind,
+    check_jit_eligibility, is_supported_platform, JitFallbackDiagnostic, JitMode, JitPolicy,
+    JitStats, JitTelemetry, JitValueKind,
 };
+pub use fusty_vm::gc::{GcConfig, GcStats};
 pub use fusty_vm::vm::VmResult;
 
 #[cfg(test)]
