@@ -63,3 +63,19 @@ All native intrinsics are exposed to FustyLang 0.2.1 scripts through `FerriumHos
 | `distance2(a, b)`, `distance3(a, b)` | `(vec, vec) -> f64` | 2D / 3D Euclidean distance |
 | `dot2(a, b)`, `dot3(a, b)` | `(vec, vec) -> f64` | 2D / 3D dot product |
 | `lerp_vec2(a, b, t)`, `lerp_vec3(a, b, t)` | `(vec, vec, f64) -> vec` | Vector linear interpolation |
+
+## Time, Input, Logging, JIT & `meow` Intrinsics
+
+| Intrinsic | Signature | Description |
+| --- | --- | --- |
+| `dt()` | `() -> f64` | Frame delta time in seconds |
+| `time()` | `() -> f64` | Total elapsed simulation time |
+| `get_frame_count()` | `() -> i64` | Total simulated frames |
+| `input_x()`, `input_y()` | `() -> f64` | Normalized player movement axes |
+| `log(a, ...)` | `(any...) -> nil` | Emits `ScriptCommand::Log` |
+| `purr(a, ...)` | `(any...) -> nil` | FustyLang 0.2.1 structured log (`ScriptCommand::Purr`) |
+| `jit_enabled()` | `() -> bool` | Whether native `fusty_jit` is active |
+| `jit_compiled_count()` | `() -> i64` | Count of JIT-compiled functions |
+| `is_meow()` | `() -> bool` | `true` inside a `meow` block or `meow nya` function |
+| `raw_teleport(pos)` | `(vec2) -> nil` | **Requires `meow`**: instant 2D teleport |
+| `raw_teleport3(pos)` | `(vec3) -> nil` | **Requires `meow`**: instant 3D teleport |
