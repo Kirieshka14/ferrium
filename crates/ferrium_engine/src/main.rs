@@ -168,6 +168,11 @@ impl FerriumApp {
             KeyCode::F1 if just => self.input.toggle_debug_pressed = true,
             KeyCode::F2 if just => self.input.toggle_3d_pressed = true,
             KeyCode::F5 if just => self.input.force_reload_pressed = true,
+            KeyCode::F6 if just => {
+                let next = self.game.jit_policy.cycle();
+                self.game.set_jit_policy(next);
+                self.game.push_log(format!("FustyJIT -> {}", next.label()));
+            }
             KeyCode::KeyR if just => self.input.reset_pressed = true,
             KeyCode::Escape if just => self.input.quit_pressed = true,
             _ => {}
