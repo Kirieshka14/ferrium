@@ -197,3 +197,12 @@ fn test_scalar_math_intrinsics() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_rounding_and_sign_intrinsics() {
+    let (res, _) = run_expr("return floor(2.9) + ceil(2.1) + round(2.6) + fract(4.25) + sign(-9.0) + sign(0.0) + sign(7.0);");
+    match res {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 8.25).abs() < 1e-6),
+        other => panic!("unexpected {:?}", other),
+    }
+}
