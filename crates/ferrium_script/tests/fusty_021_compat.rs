@@ -283,3 +283,13 @@ fn test_repo_jit_physics_example_compiles() {
     assert_eq!(art.functions.len(), 2);
     assert!(art.jit_eligible_count() >= 1);
 }
+
+#[test]
+fn test_repo_cuddle_tween_example_runs() {
+    let src = std::fs::read_to_string("../../examples/cuddle_tween.fy").unwrap();
+    let mut comp = ScriptComponent::from_source("cuddle_tween.fy", &src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(_))));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetPos(_, _))));
+}
