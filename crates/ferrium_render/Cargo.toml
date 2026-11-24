@@ -1,0 +1,8 @@
+[package]
+name = "ferrium_render"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ferrium_math = { path = "../ferrium_math" }
+image = { version = "0.25", default-features = false, features = ["png"] }
