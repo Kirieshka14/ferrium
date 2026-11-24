@@ -118,3 +118,13 @@ fn test_sparse_set_remove_last() {
     assert_eq!(set.get(e0), Some(&"a"));
     assert_eq!(set.len(), 1);
 }
+
+#[test]
+fn test_world_resources() {
+    let mut world = World::new();
+    assert!(world.resource::<StageLog>().is_none());
+    world.insert_resource(StageLog(vec!["init"]));
+    assert_eq!(world.resource::<StageLog>().unwrap().0, vec!["init"]);
+    world.resource_mut::<StageLog>().unwrap().0.push("tick");
+    assert_eq!(world.resource::<StageLog>().unwrap().0, vec!["init", "tick"]);
+}
