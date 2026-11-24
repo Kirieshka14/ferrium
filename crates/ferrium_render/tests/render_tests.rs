@@ -38,3 +38,10 @@ fn test_camera_orbit_eye_distance() {
     let eye = cam.orbit_eye();
     assert!((eye.distance(cam.orbit_target) - 5.0).abs() < 1e-4);
 }
+
+#[test]
+fn test_camera_default_mode() {
+    let cam = Camera::default();
+    assert_eq!(cam.mode, ProjectionMode::Hybrid25D);
+    assert!(!cam.use_orbit_3d);
+}
