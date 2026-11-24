@@ -15,3 +15,17 @@ fn test_camera_2d_screen_world_roundtrip() {
     let back = cam.screen_to_world_2d(Vec2::new(sx, sy), 800, 600);
     assert!((back - world_pt).length() < 1e-3);
 }
+
+#[test]
+fn test_camera_shake_decay_and_reset() {
+    let mut cam = Camera::new();
+    cam.trigger_shake(12.0, 0.2);
+    cam.update(0.05, 1.0);
+    assert!(cam.shake_timer > 0.0);
+    assert!(cam.shake_offset.length() > 0.0);
+
+    cam.update(0.25, 1.3);
+    assert_eq!(cam.shake_timer, 0.0);
+    assert_eq!(cam.shake_offset, Vec2::ZERO);
+    assert_eq!(cam.shake_intensity, 0.0);
+}
