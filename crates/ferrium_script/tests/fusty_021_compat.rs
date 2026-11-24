@@ -203,3 +203,14 @@ fn test_coroutine_yield_and_resume() {
     assert!(matches!(comp.step(&mut host2).unwrap(), VmResult::Done(_)));
     assert_eq!(comp.purr_count, 2);
 }
+
+#[test]
+fn test_coroutine_wait_sets_timer() {
+    let mut comp = ScriptComponent::from_source("wait.fy", "wait 0.42;").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    match comp.step(&mut host).unwrap() {
+        VmResult::Waiting { duration_sec } => assert!((duration_sec - 0.42).abs() < 1e-6),
+        other => panic!("Unexpected {:?}", other),
+    }
+    assert!((comp.wait_remaining - 0.42).abs() < 1e-6);
+}
