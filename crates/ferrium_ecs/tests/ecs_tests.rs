@@ -36,3 +36,12 @@ fn test_insert_on_dead_entity_ignored() {
     world.insert(e, Position(1.0, 2.0));
     assert!(world.get::<Position>(e).is_none());
 }
+
+#[test]
+fn test_component_overwrite() {
+    let mut world = World::new();
+    let e = world.spawn();
+    world.insert(e, Health(100));
+    world.insert(e, Health(45));
+    assert_eq!(world.get::<Health>(e), Some(&Health(45)));
+}
