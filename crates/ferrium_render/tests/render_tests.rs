@@ -45,3 +45,17 @@ fn test_camera_default_mode() {
     assert_eq!(cam.mode, ProjectionMode::Hybrid25D);
     assert!(!cam.use_orbit_3d);
 }
+
+#[test]
+fn test_mesh3d_obj_quad_triangulation() {
+    let quad = "v 0 0 0
+v 1 0 0
+v 1 1 0
+v 0 1 0
+f 1 2 3 4
+";
+    let mesh = Mesh3D::from_obj_str("Quad", quad).unwrap();
+    assert_eq!(mesh.vertices.len(), 4);
+    assert_eq!(mesh.triangles.len(), 2);
+    assert_eq!(mesh.face_normals.len(), 2);
+}
