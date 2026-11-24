@@ -49,3 +49,15 @@ meow {
 ```
 
 Scripts can also query `is_meow()` at runtime to check whether they are currently executing inside a `meow` scope.
+
+## Native `fusty_jit` Compilation
+
+Ferrium integrates `fusty_jit` directly into `ScriptComponent`:
+
+- **`JitPolicy::Auto`** *(default)*: Interprets cold code in the bytecode VM and compiles hot `nya` functions to native machine code once their call count reaches `JitPolicy::DEFAULT_HOT_THRESHOLD` (`3`).
+- **`JitPolicy::Eager`**: Compiles eligible `nya` functions immediately on first invocation.
+- **`JitPolicy::Disabled`**: Forces pure bytecode VM execution (useful for deterministic debugging or comparing JIT vs VM output).
+
+### Eligibility & Telemetry
+- `compile_fusty_detailed` inspects every function in a `Chunk` using `check_jit_eligibility` and reports its `JitValueKind` in `FunctionSummary`.
+- `JitTelemetry` aggregates `compiled_functions`, `native_calls`, `vm_fallbacks`, `compiled_bytes`, `compiled_names`, and `native_hit_rate()` across all active script VMs.
