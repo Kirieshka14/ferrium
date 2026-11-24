@@ -188,3 +188,12 @@ fn test_trig_intrinsics() {
         other => panic!("unexpected {:?}", other),
     }
 }
+
+#[test]
+fn test_scalar_math_intrinsics() {
+    let (res, _) = run_expr("return sqrt(16.0) + pow(2.0, 3.0) + abs(-5.0) + min(3.0, 9.0) + max(2.0, 7.0) + clamp(50.0, 0.0, 10.0);");
+    match res {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 37.0).abs() < 1e-6),
+        other => panic!("unexpected {:?}", other),
+    }
+}
