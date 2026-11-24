@@ -99,6 +99,7 @@ pub struct FerriumStudioApp {
 
     pub code_editor: CodeEditorState,
     pub repl: ReplState,
+    pub jit_policy: ferrium_script::JitPolicy,
     pub logs: Vec<ConsoleEntry>,
     pub new_script_name: String,
 
@@ -192,6 +193,7 @@ impl FerriumStudioApp {
             console_filter: None,
             code_editor,
             repl: ReplState::new(),
+            jit_policy: ferrium_script::JitPolicy::default(),
             logs,
             new_script_name: "NewScript".into(),
             dragging_entity: false,
@@ -312,10 +314,11 @@ impl FerriumStudioApp {
                 let _ = self.code_editor.save_active();
             }
         }
-        let rt = EditorRuntime::from_scene(
+        let rt = EditorRuntime::from_scene_with_jit(
             &self.scene,
             &self.project_root,
             &self.edit_camera,
+            self.jit_policy,
             &mut self.logs,
         );
         self.runtime = Some(rt);
@@ -666,7 +669,7 @@ impl FerriumStudioApp {
                 }
             }
 
-            // Right: Layout preset + FPS + ms
+            // Right: Layout preset + FustyJIT policy + FPS + ms
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(
                     egui::RichText::new(format!("{:.1} ms", self.frame_ms))
@@ -678,6 +681,49 @@ impl FerriumStudioApp {
                         .color(theme::TEXT_PRIMARY)
                         .size(12.0),
                 );
+                ui.add_space(6.0);
+                if let Some(rt) = &self.runtime {
+                    let jt = rt.jit_telemetry();
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "JIT {}fn/{}c",
+                            jt.compiled_functions, jt.native_calls
+                        ))
+                        .color(theme::OK_GREEN)
+                        .size(11.5),
+                    )
+                    .on_hover_text(format!(
+                        "FustyJIT native telemetry:\nCompiled: {} nya fn ({} B)\nNative calls: {}\nVM fallbacks: {}",
+                        jt.compiled_functions,
+                        jt.compiled_bytes,
+                        jt.native_calls,
+                        jt.vm_fallbacks
+                    ));
+                }
+                if ui
+                    .add(
+                        egui::Button::new(
+                            egui::RichText::new(self.jit_policy.label()).size(11.5),
+                        )
+                        .fill(if self.jit_policy.is_enabled() {
+                            theme::BG_SELECTED
+                        } else {
+                            theme::BG_TOOLBAR
+                        }),
+                    )
+                    .on_hover_text("Cycle FustyLang 0.2.1 native x86-64 JIT mode (Auto / Eager / VM)")
+                    .clicked()
+                {
+                    self.jit_policy = self.jit_policy.cycle();
+                    self.repl.jit_policy = self.jit_policy;
+                    if let Some(rt) = &mut self.runtime {
+                        rt.set_jit_policy(self.jit_policy);
+                    }
+                    self.push_log(
+                        ConsoleLevel::Info,
+                        format!("FustyJIT mode switched to {}", self.jit_policy.label()),
+                    );
+                }
                 ui.add_space(6.0);
                 egui::ComboBox::from_id_salt("layout_preset_combo")
                     .selected_text(&self.layout_preset)
@@ -2230,12 +2276,24 @@ impl FerriumStudioApp {
         if allow_extras && self.code_editor.show_bytecode {
             ui.separator();
             ui.columns(2, |cols| {
-                cols[0].label(egui::RichText::new("Fusty Bytecode Disassembly").strong());
+                cols[0].label(egui::RichText::new("Fusty 0.2.1 Bytecode & JIT Analysis").strong());
                 egui::ScrollArea::vertical()
                     .id_salt("disasm_exp_scroll")
                     .max_height(150.0)
                     .show(&mut cols[0], |ui| {
                         if let Some(tab) = self.code_editor.active() {
+                            for f in &tab.last_check.functions {
+                                let badge = crate::code_panel::format_function_badge(f);
+                                let col = if f.jit_kind.is_some() {
+                                    theme::OK_GREEN
+                                } else {
+                                    theme::TEXT_MUTED
+                                };
+                                ui.label(egui::RichText::new(badge).monospace().size(11.0).color(col));
+                            }
+                            if !tab.last_check.functions.is_empty() {
+                                ui.separator();
+                            }
                             for line in &tab.last_check.disassembly {
                                 ui.label(egui::RichText::new(line).monospace().size(11.5));
                             }
