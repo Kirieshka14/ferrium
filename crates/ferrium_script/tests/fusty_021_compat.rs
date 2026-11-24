@@ -318,3 +318,15 @@ fn test_repo_orbit_swarm_example_runs() {
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetPos3(_, _))));
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetRot(_, _))));
 }
+
+#[test]
+fn test_repo_event_bus_example_heals_low_hp() {
+    let src = std::fs::read_to_string("../../examples/event_bus.fy").unwrap();
+    let mut snap = base_snapshot();
+    snap.self_hp = 30;
+    let mut comp = ScriptComponent::from_source("event_bus.fy", &src).unwrap();
+    let mut host = FerriumHost::new(snap);
+    assert!(matches!(comp.step(&mut host).unwrap(), VmResult::Waiting { .. }));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Heal { amount: 25, .. })));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::EmitEvent { name, .. } if name == "emergency_heal")));
+}
