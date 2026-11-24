@@ -42,3 +42,10 @@ Ferrium is structured as a six-crate Cargo workspace with strict unidirectional 
 - Systems push depth-sorted `WorldCommand` items (2D rects, polygons, sprites, 3D wire/solid boxes, `Mesh3D` instances, gizmos, fading ground grids) and `HudCommand` overlays.
 - `SoftwareCanvas::render_frame` sorts world commands by Z-order, projects 3D geometry through `Camera` (`Orthographic2D`, `Hybrid25D`, or `use_orbit_3d`), and rasterizes with divide-free alpha blending (`Color::blend_over`).
 - `Mesh3D::from_obj_str` parses Wavefront `.obj` files (including quads, n-gons, negative indices, and `v/vt/vn` triples) and normalizes bounds automatically.
+
+## Native FustyLang Execution Pipeline (`ferrium_script`)
+
+Each scripted entity owns a `ScriptComponent`:
+1. **Snapshot Phase**: The engine builds an immutable `ScriptSnapshot` containing the entity's 2D/3D transform, velocity, HP, player state, input axes, `dt`, elapsed time, frame counter, and JIT telemetry.
+2. **Execution Phase**: `ScriptComponent::step` runs the FustyLang 0.2.1 VM (with `fusty_jit` acceleration for hot `nya` functions) against a `FerriumHost` instance.
+3. **Deferred Command Flush**: Host mutations emit typed `ScriptCommand` values (`SetPos`, `SetPos3`, `SetRot`, `SetScale`, `SetColor`, `SetVel`, `SpawnHitbox`, `Heal`, `Damage`, `EmitEvent`, `RawTeleport`, `RawTeleport3`, `Purr`, `Log`) which the engine applies atomically to `World` after the VM yields.
