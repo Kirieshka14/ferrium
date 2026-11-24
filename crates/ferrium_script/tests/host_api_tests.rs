@@ -159,3 +159,17 @@ fn test_spawn_hitbox_knockback() {
     assert!(matches!(host.commands[0], ScriptCommand::SpawnHitbox { damage: 15, knockback, .. } if (knockback - 260.0).abs() < 1e-3));
     assert!(matches!(host.commands[1], ScriptCommand::SpawnHitbox { damage: 30, duration, knockback, .. } if (duration - 0.02).abs() < 1e-4 && (knockback - 500.0).abs() < 1e-3));
 }
+
+#[test]
+fn test_time_input_and_frame_intrinsics() {
+    let (res, _) = run_expr("return time() + input_x() + input_y() + get_frame_count();");
+    match res {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 763.0).abs() < 1e-6),
+        other => panic!("unexpected {:?}", other),
+    }
+    let (dt_res, _) = run_expr("return dt();");
+    match dt_res {
+        VmResult::Done(v) => assert!((v.as_f64().unwrap() - 1.0 / 60.0).abs() < 1e-6),
+        other => panic!("unexpected {:?}", other),
+    }
+}
