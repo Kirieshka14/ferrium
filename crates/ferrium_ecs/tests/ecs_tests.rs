@@ -147,3 +147,25 @@ fn test_schedule_deterministic_stage_order() {
         vec!["input", "scripts", "physics", "combat", "render"]
     );
 }
+
+#[test]
+fn test_spawn_despawn_stress_recycling() {
+    let mut world = World::new();
+    let mut live = Vec::new();
+    for i in 0..200 {
+        let e = world.spawn();
+        world.insert(e, Health(i));
+        live.push(e);
+    }
+    assert_eq!(world.entity_count(), 200);
+    for e in live.iter().step_by(2) {
+        assert!(world.despawn(*e));
+    }
+    assert_eq!(world.entity_count(), 100);
+    for i in 0..100 {
+        let e = world.spawn();
+        assert_eq!(e.generation, 1);
+        world.insert(e, Health(1000 + i));
+    }
+    assert_eq!(world.entity_count(), 200);
+}
