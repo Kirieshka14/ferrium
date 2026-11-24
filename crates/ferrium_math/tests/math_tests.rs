@@ -50,3 +50,14 @@ fn test_vec3_arithmetic_and_swizzle() {
     assert_eq!(v / 2.0, Vec3::new(0.5, 1.0, 1.5));
     assert_eq!(-v, Vec3::new(-1.0, -2.0, -3.0));
 }
+
+#[test]
+fn test_vec3_geometric_ops() {
+    let a = Vec3::new(1.0, 2.0, 3.0);
+    let b = Vec3::new(4.0, 5.0, 6.0);
+    assert_eq!(a.mul_components(b), Vec3::new(4.0, 10.0, 18.0));
+    assert!((a.dot(b) - 32.0).abs() < 1e-5);
+    assert!((Vec3::ZERO.distance(Vec3::new(0.0, 3.0, 4.0)) - 5.0).abs() < 1e-5);
+    assert_eq!(Vec3::ZERO.lerp(Vec3::new(2.0, 4.0, 6.0), 0.5), Vec3::new(1.0, 2.0, 3.0));
+    assert_eq!(Vec3::ZERO.normalized(), Vec3::ZERO);
+}
