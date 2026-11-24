@@ -12,3 +12,14 @@ fusty_vm       = { git = "https://github.com/Kirieshka14/fustylang.git", branch 
 ```
 
 This guarantees that every language feature, bytecode optimization, and JIT improvement in FustyLang 0.2.1 works natively inside Ferrium without glue layers or forks.
+
+## Supported FustyLang 0.2.1 Features
+
+| Feature | Syntax | Behavior in Ferrium |
+| --- | --- | --- |
+| Functions | `nya name(x: i64) -> i64 { ... }` | Compiled to bytecode functions; numeric functions are eligible for `fusty_jit` |
+| Midpoint operator | `a uwu b` | Computes `(a + b) / 2` for integers (returns `f64`), floats, `vec2`, and `vec3` |
+| Structured logging | `purr("HP:", hp)` | Emits `ScriptCommand::Purr` and increments `ScriptComponent::purr_count` |
+| Nested block comments | `/* outer /* inner */ outer */` | Supported by both compiler and Ferrium Editor syntax highlighter |
+| Coroutines | `wait 0.25;` / `yield;` | Suspends VM cleanly across frames without blocking the ECS tick |
+| Immutability by default | `let x = 1;` vs `let mut x = 1;` | Enforced at bytecode compilation time |
