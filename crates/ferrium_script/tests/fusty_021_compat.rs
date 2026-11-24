@@ -407,3 +407,15 @@ fn test_script_error_display_formatting() {
     let e2 = ScriptError::Io { path: "a.fy".into(), message: "not found".into() };
     assert!(e2.to_string().contains("Failed to read 'a.fy'"));
 }
+
+#[test]
+fn test_repo_wave_spawner_example_runs() {
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wave_spawner.fy");
+    let src = std::fs::read_to_string(&path).unwrap();
+    let mut comp = ScriptComponent::from_source(&path, &src).unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    let res = comp.step(&mut host).unwrap();
+    assert!(matches!(res, VmResult::Done(v) if v.to_string() == "9"));
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::EmitEvent { name, .. } if name == "spawn_wave")));
+    assert_eq!(comp.purr_count, 1);
+}
