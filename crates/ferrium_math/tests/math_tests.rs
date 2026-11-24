@@ -30,3 +30,12 @@ fn test_vec2_lerp_perp_and_angle() {
     let up = Vec2::from_angle(FRAC_PI_2);
     assert!(up.x.abs() < 1e-5 && (up.y - 1.0).abs() < 1e-5);
 }
+
+#[test]
+fn test_vec2_clamp_length() {
+    let v = Vec2::new(6.0, 8.0);
+    let clamped = v.clamp_length(5.0);
+    assert!((clamped.length() - 5.0).abs() < 1e-5);
+    assert!((clamped.x - 3.0).abs() < 1e-5);
+    assert_eq!(Vec2::new(1.0, 1.0).clamp_length(10.0), Vec2::new(1.0, 1.0));
+}
