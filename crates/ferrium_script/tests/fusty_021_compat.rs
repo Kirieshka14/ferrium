@@ -164,3 +164,11 @@ fn test_purr_single_arg() {
     assert_eq!(comp.purr_count, 1);
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(s) if s == "hello ferrium")));
 }
+
+#[test]
+fn test_purr_multi_arg() {
+    let mut comp = ScriptComponent::from_source("purr2.fy", "purr(\"hp =\", 80, true);").unwrap();
+    let mut host = FerriumHost::new(base_snapshot());
+    comp.step(&mut host).unwrap();
+    assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(s) if s == "hp = 80 true")));
+}
