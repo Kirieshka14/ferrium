@@ -20,3 +20,15 @@ fn test_jit_policy_cycle() {
     assert_eq!(JitPolicy::Eager.cycle(), JitPolicy::Disabled);
     assert_eq!(JitPolicy::Disabled.cycle(), JitPolicy::Auto);
 }
+
+#[test]
+fn test_jit_policy_parse() {
+    assert_eq!(JitPolicy::parse("auto"), Some(JitPolicy::Auto));
+    assert_eq!(JitPolicy::parse("EAGER"), Some(JitPolicy::Eager));
+    assert_eq!(JitPolicy::parse("on"), Some(JitPolicy::Eager));
+    assert_eq!(JitPolicy::parse("always"), Some(JitPolicy::Eager));
+    assert_eq!(JitPolicy::parse("off"), Some(JitPolicy::Disabled));
+    assert_eq!(JitPolicy::parse("disabled"), Some(JitPolicy::Disabled));
+    assert_eq!(JitPolicy::parse("vm"), Some(JitPolicy::Disabled));
+    assert_eq!(JitPolicy::parse("invalid"), None);
+}
