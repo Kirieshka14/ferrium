@@ -293,3 +293,18 @@ fn test_repo_cuddle_tween_example_runs() {
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::Purr(_))));
     assert!(host.commands.iter().any(|c| matches!(c, ScriptCommand::SetPos(_, _))));
 }
+
+#[test]
+fn test_repo_baka_guard_example_valid_and_trap() {
+    let src = std::fs::read_to_string("../../examples/baka_guard.fy").unwrap();
+    let mut ok_comp = ScriptComponent::from_source("baka_guard.fy", &src).unwrap();
+    let mut ok_host = FerriumHost::new(base_snapshot());
+    assert!(matches!(ok_comp.step(&mut ok_host).unwrap(), VmResult::Done(_)));
+
+    let mut bad_snap = base_snapshot();
+    bad_snap.self_hp = -10;
+    let mut bad_comp = ScriptComponent::from_source("baka_guard.fy", &src).unwrap();
+    let mut bad_host = FerriumHost::new(bad_snap);
+    let err = bad_comp.step(&mut bad_host).unwrap_err();
+    assert!(err.is_baka());
+}
